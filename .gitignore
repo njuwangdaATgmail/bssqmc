@@ -1,0 +1,57 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Module files
+*.mod
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.out*
+*.app
+*.i*86
+*.x86_64
+*.hex
+*.x
+*.out*
+out
+OUT
+output
+out_*
+output_*
+input_*
+
+# Debug files
+*.dSYM/
+*.su
+
+# Data files
+*.dat
+*.mat
+*.dat*
+
+# others
+hostfile
+hist
