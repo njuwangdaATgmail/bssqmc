@@ -1,7 +1,12 @@
 !---------------------------------------------------------------------------
-! In this module, uniform fermion-fermion and fermion-boson interactions
-! are supposed. For disorder case, we can simply add site-dependence to 
-! relevant variables, e.g. lam_field, gamma_field, etc.
+! Tis MODULE is designed for defining a 2D fermionic lattice coupling to 
+! boson fields. The boson fields can be either descrete or continuous.
+!
+! NOTICE: In this module, uniform fermion-fermion and fermion-boson 
+! interactions are supposed. For disorder case, we can simply add 
+! site-dependence to relevant variables, e.g. lam_field, gamma_field, etc.
+! 
+! Several useful subroutines are provided to help users to 
 !---------------------------------------------------------------------------
 MODULE model2d_complex
 
@@ -30,10 +35,10 @@ MODULE model2d_complex
   REAL(8) twista, twistb
 
   COMPLEX(8), ALLOCATABLE :: kmat(:,:,:)
-
   
   !---------------------------------------------------
   ! Ising-type boson field parameters
+  !   gamma(field) * exp( lam(field) * fmat(:,:) )
   !---------------------------------------------------
   
   INTEGER nising
@@ -55,11 +60,12 @@ MODULE model2d_complex
 
   !--------------------------------------------------
   ! continuous boson field parameters
+  !   gamma * exp( field * fmat(:,:) )
   !--------------------------------------------------
 
   INTEGER nphi
 
-  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:)
+  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:), gamma_phi(:)
   
   COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
 
