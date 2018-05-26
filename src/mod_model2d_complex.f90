@@ -1,6 +1,7 @@
 !---------------------------------------------------------------------------
 ! Tis MODULE is designed for defining a 2D fermionic lattice coupling to 
-! boson fields. The boson fields can be either descrete or continuous.
+! boson fields. The boson fields can be either descrete (ising-type) or 
+! continuous (phi-type).
 !
 ! NOTICE: In this module, uniform fermion-fermion and fermion-boson 
 ! interactions are supposed. For disorder case, we can simply add 
@@ -42,12 +43,20 @@ MODULE model2d_complex
   !---------------------------------------------------
   
   INTEGER nising
+
+  INTEGER, ALLOCATABLE :: ndim_ising(:)   ! (nising)
   
-  INTEGER, ALLOCATABLE :: isingmax(:)    
+  INTEGER, ALLOCATABLE :: nb_ising(:,:,:)  ! (nsite, ndim, nfield)
+
+  LOGICAL, ALLOCATABLE :: mask_ising(:)
+
+  LOGICAL, ALLOCATABLE :: mask_ising_site(:,:)
+
+  INTEGER, ALLOCATABLE :: isingmax(:)   ! (nising) 
 
   INTEGER, ALLOCATABLE :: isingflip(:,:) ! (maxval(isingmax)-1,maxval(isingmax))
   
-  COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:)
+  COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:)  
   
   COMPLEX(8), ALLOCATABLE :: lam_ising(:,:)
 
@@ -65,7 +74,15 @@ MODULE model2d_complex
 
   INTEGER nphi
 
-  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:), gamma_phi(:)
+  INTEGER, ALLOCATABLE :: ndim_phi(:)  ! (nphi)
+
+  INTEGER, ALLOCATABLE :: nb_phi(:,:,:)  ! (nsite, ndim, nfield)
+
+  LOGICAL, ALLOCATABLE :: mask_phi(:)
+
+  LOGICAL, ALLOCATABLE :: mask_phi_site(:,:)
+
+  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:)
   
   COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
 
