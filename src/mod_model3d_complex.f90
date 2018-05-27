@@ -1,40 +1,57 @@
 !---------------------------------------------------------------------------
 ! Tis MODULE is designed for defining a 3D fermionic lattice coupling to
-! boson fields. The boson fields can be either descrete (ising-type) or
-! continuous (phi-type).
+! boson fields. The boson fields can be either descrete (ising) or
+! continuous (phi).
 !
 ! NOTICE: In this module, uniform fermion-fermion and fermion-boson
 ! interactions are supposed. For disorder case, we can simply add
 ! site-dependence to relevant variables, e.g. lam_field, gamma_field, etc.
 !
-! Several useful subroutines are provided to help users to
+! Several useful subroutines are provided to help users 
 !---------------------------------------------------------------------------
-MODULE model2d_complex
+MODULE model3d_complex
 
   !-------------------------------------------------
   ! fermion field parameters
   !-------------------------------------------------
 
+  ! number of fermion flavors
   INTEGER nflv
 
-  INTEGER La, Lb, Lc, norb
+  ! lattice size
+  INTEGER La, Lb, Lc
+  
+  ! number of orbitals
+  INTEGER norb
 
+  ! unit cell in real space
   REAL(8) a0r(3), b0r(3), c0r(3)
 
+  ! unit cell in momentum space
   REAL(8) a0k(3), b0k(3), c0k(3)
 
+  ! position of each orbital fermion
   REAL(8), ALLOCATABLE :: rorb(:,:)  ! (3,norb)
 
+  ! hopping range
   INTEGER cuta, cutb, cutc
 
+  ! hopping parameters (including onsite energy)
   COMPLEX(8), ALLOCATABLE :: hop(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
 
-  REAL(8) beta, dtau
+  ! inverse of temperature
+  REAL(8) beta
 
+  ! length of each time slice
+  REAL(8) dtau
+
+  ! periodic boundary condition or not along each direction
   LOGICAL pbca, pbcb, pbcc
 
+  ! twisted boundary condition
   REAL(8) twista, twistb, twistc
 
+  ! kinetic Hamiltonian
   COMPLEX(8), ALLOCATABLE :: kmat(:,:,:)
 
   !---------------------------------------------------
@@ -42,52 +59,87 @@ MODULE model2d_complex
   !   gamma(field) * exp( lam(field) * fmat(:,:) )
   !---------------------------------------------------
 
+  ! number of ising fields
   INTEGER nising
 
-  INTEGER, ALLOCATABLE :: ndim_ising(:)   ! (nising)
+  ! dimension for each ising field
+  ! dimension (nising)
+  INTEGER, ALLOCATABLE :: ndim_ising(:) 
 
-  INTEGER, ALLOCATABLE :: nb_ising(:,:,:)  ! (nsite, ndim, nfield)
+  ! list of all sites belong to one ising field living on one representative site.
+  ! dimension (nsite,maxval(ndim_ising),nfield)
+  INTEGER, ALLOCATABLE :: nb_ising(:,:,:)
 
+  ! whether an ising field exists?
+  ! dimension (nising)
   LOGICAL, ALLOCATABLE :: mask_ising(:)
 
+  ! whether a site lives an ising field
+  ! dimension (nsite,nising)
   LOGICAL, ALLOCATABLE :: mask_ising_site(:,:)
 
-  INTEGER, ALLOCATABLE :: isingmax(:)   ! (nising)
+  ! the number of allowed values of an ising field
+  ! dimension (nising)
+  INTEGER, ALLOCATABLE :: isingmax(:)
 
-  INTEGER, ALLOCATABLE :: isingflip(:,:) ! (maxval(isingmax)-1,maxval(isingmax))
+  ! flip an ising field to a new value
+  ! dimension (maxval(isingmax)-1,maxval(isingmax))
+  INTEGER, ALLOCATABLE :: isingflip(:,:)
 
+  ! form factor of a given ising field
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising)
   COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:)
 
+  ! lambda of the ising field
+  ! dimension (maxval(isingmax),nising)
   COMPLEX(8), ALLOCATABLE :: lam_ising(:,:)
 
+  ! gamma of the iisng field
+  ! dimension (maxval(isingmax),nising)
   COMPLEX(8), ALLOCATABLE :: gamma_ising(:,:)
 
+  ! exp(lam*F) and exp(-lam*F)
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,nising)
   COMPLEX(8), ALLOCATABLE :: expflam_ising(:,:,:,:), inv_expflam_ising(:,:,:,:)
-
+  
+  ! exp((lam'-lam)*F)-1
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,isingmax,nising)
   COMPLEX(8), ALLOCATABLE :: diff_ef_ising(:,:,:,:,:)
 
 
   !--------------------------------------------------
   ! continuous boson field parameters
-  !   gamma * exp( field * fmat(:,:) )
+  !   exp( field * fmat(:,:) )
   !--------------------------------------------------
 
+  ! number of continuous boson fields
   INTEGER nphi
-
+  
+  ! dimension for each continuous field
   INTEGER, ALLOCATABLE :: ndim_phi(:)  ! (nphi)
 
-  INTEGER, ALLOCATABLE :: nb_phi(:,:,:)  ! (nsite, ndim, nfield)
+  ! dimension (nsite,maxval(ndim_phi),nphi)
+  INTEGER, ALLOCATABLE :: nb_phi(:,:,:) 
 
+  ! dimension (nphi)
   LOGICAL, ALLOCATABLE :: mask_phi(:)
 
+  ! dimension (nsite,maxval(ndim_phi),nphi)
   LOGICAL, ALLOCATABLE :: mask_phi_site(:,:)
 
+  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi)
   COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:)
 
+  ! update phi by changing to phi+dphi/dphi_global
+  ! dimension (nphi)
   COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
 
+  ! save unitary transformation expf_U and expf_Udag
+  !   exp(fmat)=expf_U*expf_E*expf_Udag
+  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi)
   COMPLEX(8), ALLOCATABLE :: expf_U_phi(:,:,:), expf_Udag_phi(:,:,:)
 
+  ! dimension (maxval(ndim_phi),nphi)
   REAL(8), ALLOCATABLE :: expf_E_phi(:,:)
 
 CONTAINS
