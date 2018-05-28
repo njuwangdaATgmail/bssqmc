@@ -25,7 +25,7 @@
 !   INTEGER nfield
 !   REAL(8) newMetro
 !   COMPLEX(8), DIMENSION(:,:,:)  :: expk, expk_half, inv_expk, inv_expk_half
-!   COMPLEX(8), DIMENSION(:,:,:)  :: slater, slater_Q, slater_T
+!   COMPLEX(8), DIMENSION(:,:,:)  :: slater, slater_Q, slater_R
 !   COMPLEX(8), DIMENSION(:,:)    :: slater_D
 !   COMPLEX(8), DIMENSION(:)      :: field
 !   INTEGER,    DIMENSION(:)      :: ndim_field
@@ -61,7 +61,7 @@
 !     rtot = ratio(1)*...*ratio(nflv) * W
 !   where W accounts for free boson part
 ! 
-! acceptprob_global(ratio,newfield,ifeld,rtot)
+! acceptprob_global(ratio,newfield,ifield,rtot)
 ! - the same as acceptprob_local but for global update
 ! 
 ! get_expV(site,time,ifield,flv,inv,expV)
@@ -157,7 +157,7 @@ MODULE dqmc_complex
   ! dimension (nsite, nelec, nflv) for slater and slater_Q
   ! dimension (nelec, nflv) for slater_D
   ! dimension (nelec, nelec, nflv) for slater_R
-  COMPLEX(8), ALLOCATABLE :: slater(:,:,:), slater_Q(:,:,:), slater_D(:,:), slater_R(:,:,;)
+  COMPLEX(8), ALLOCATABLE :: slater(:,:,:), slater_Q(:,:,:), slater_D(:,:), slater_R(:,:,:)
 
   ! equal-time Green's function
   ! dimension (nsite, nsite, nflv)
@@ -227,7 +227,7 @@ MODULE dqmc_complex
   !----------------------------------
   ! list of public subroutines
   PUBLIC :: dqmc_driver, HS1, HS2, HSgeneral, evolve_left_K, evolve_right_K,  &
-    &       evolve_left_V, evolve_right_V, evolve_left, evolve_right          &
+    &       evolve_left_V, evolve_right_V, evolve_left, evolve_right,         &
     &       evolve_left_2nd, evolve_right_2nd
 
   !----------------------------------
@@ -348,7 +348,7 @@ CONTAINS
     randomseed=randomseed+701703*id
     CALL init_rng(randomseed)
 
-    ALLOCATE(g(nsite,nsite))
+    ALLOCATE(g(nsite,nsite,nflv))
 
     ALLOCATE(Ntotal_field(nfield),Naccept_field(nfield))
     ALLOCATE(Ntotal_field_global(nfield),Naccept_field_global(nfield))
@@ -374,6 +374,7 @@ CONTAINS
   SUBROUTINE tmpout_(ith,mcs)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: ith,mcs
+    INTEGER ifield
     CHARACTER*4 cid
 
     ! temporirally output the running status
@@ -442,7 +443,6 @@ CONTAINS
 
   ! do local update trying to update all auxiliary fields at each site and time
   SUBROUTINE dqmc_update_local(do_meas)
-    USE mod_dqmc_complex
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: do_meas
     INTEGER time,site,ifield,ndim,j,a,b,sitea,siteb,flv
@@ -504,7 +504,7 @@ CONTAINS
         DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
 
           ! record old configuration
-          oldfield=field(site,time,i)
+          oldfield=field(site,time,ifield)
 
           ! generate new configuration by calling an external subroutine which also returns delta=exp(V'-V)-1
           CALL generate_newfield(newfield,site,time,delta(1:ndim,1:ndim,1:nflv),ifield)
@@ -602,12 +602,11 @@ CONTAINS
   SUBROUTINE dqmc_update_global(ifield)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: ifield
-    INTEGER flv,ifield
+    INTEGER flv,i
     INTEGER, ALLOCATABLE :: ising_old(:,:),ising_new(:,:)
     REAL(8) paccept
     COMPLEX(8) oldfield(nsite,ntime),newfield(nsite,ntime)
     COMPLEX(8) ratio(nflv),rtot
-    COMPLEX(8), ALLOCATABLE :: dvec(:,:),dvec_old(:,:)
     COMPLEX(8), ALLOCATABLE :: dvec(:,:),dvec_old(:,:)
 
 
@@ -630,7 +629,7 @@ CONTAINS
       ELSE
 
         ratio(flv)=1d0/det(nsite,Bstring_Q(1:nsite,1:nsite,1,flv))
-        dvec_old(1:nsite,flv)=Bstring_D(1:site,1,flv)
+        dvec_old(1:nsite,flv)=Bstring_D(1:nsite,1,flv)
         CALL sort_(nsite,dvec_old(1:nsite,flv))
 
       END IF
@@ -666,7 +665,7 @@ CONTAINS
       ELSE
 
         ratio(flv)=ratio(flv)*det(nsite,Bstring_Q(1:nsite,1:nsite,1,flv))
-        dvec(1:nsite,flv)=Bstring_D(1:site,1,flv)
+        dvec(1:nsite,flv)=Bstring_D(1:nsite,1,flv)
         CALL sort_(nsite,dvec(1:nsite,flv))
 
         DO i=1,nsite
@@ -699,7 +698,7 @@ CONTAINS
     IF(drand()>paccept)RETURN
 
     ! record the number of accepted tryings
-    Naccept_field_global(ifield)=Naccept_ising_global(ifield)+1
+    Naccept_field_global(ifield)=Naccept_field_global(ifield)+1
 
     ! obtain the phase of the current configuration
     currentphase=currentphase*rtot/abs(rtot)
@@ -780,10 +779,9 @@ CONTAINS
 
   ! calculate T=0 Green's function from definition, using QDR decomposition stabilization algorithm.
   SUBROUTINE update_scratch_T0(time)
-    USE mod_dqmc_complex
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time
-    INTEGER block,flv,flag,p,i
+    INTEGER block,pblock,flv,flag,p,i
     COMPLEX(8) dvec(nelec),tri(nelec,nelec),tmat(nelec,nelec),gfast(nsite,nsite)
     COMPLEX(8), ALLOCATABLE :: qmat(:,:)
 
@@ -911,7 +909,7 @@ CONTAINS
   SUBROUTINE update_scratch(time)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time
-    INTEGER block,flv,flag,p,i
+    INTEGER block,pblock,flv,flag,p,i
     COMPLEX(8) dvec(nsite),qmat(nsite,nsite),tmat(nsite,nsite),tri(nsite,nsite),gfast(nsite,nsite)
 
     IF(scratch_global_useful)THEN
@@ -993,7 +991,7 @@ CONTAINS
           ! tmat*dvec*qmat=Bstring(block-2)
           tmat=Bstring_T(:,:,block-2,flv)
           qmat=Bstring_Q(:,:,block-2,flv)
-          dvec=Bstring_D(:,:,block-2,flv)
+          dvec=Bstring_D(:,block-2,flv)
         END IF
 
         flag=0
@@ -1103,7 +1101,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time,ifield,d,flv
     LOGICAL, INTENT(IN) :: inv
-    INTEGER a,b,sitea,siteb
+    INTEGER a,b,site,sitea,siteb
     COMPLEX(8) matrix(nsite,d),expV(ndim_field(ifield),ndim_field(ifield))
     COMPLEX(8) gtmp(ndim_field(ifield),d)
     DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
@@ -1127,7 +1125,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time,ifield,d,flv
     LOGICAL, INTENT(IN) :: inv
-    INTEGER a,b,sitea,siteb
+    INTEGER a,b,site,sitea,siteb
     COMPLEX(8) matrix(d,nsite),expV(ndim_field(ifield),ndim_field(ifield))
     COMPLEX(8) gtmp(d,ndim_field(ifield))
     DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
@@ -1256,6 +1254,6 @@ CONTAINS
     END IF
   END SUBROUTINE HSgeneral
 
-END MODULE mod_dqmc_complex
+END MODULE dqmc_complex
 
 

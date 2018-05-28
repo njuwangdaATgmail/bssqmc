@@ -1,0 +1,4 @@
+SUBROUTINE measurement(time)
+  IMPLICIT NONE
+  INTEGER, INTENT(IN) :: time
+END SUBROUTINE

@@ -96,7 +96,7 @@ MODULE model_complex
   COMPLEX(8), ALLOCATABLE :: fmat_ising_U(:,:,:)
   
   !
-  COMPLEX(8), ALLOCATABLE :: fmat_ising_expE(:,:)
+  REAL(8), ALLOCATABLE :: fmat_ising_expE(:,:)
 
   ! lambda of the ising field
   ! dimension (maxval(isingmax),nising)
@@ -154,7 +154,7 @@ CONTAINS
   ! group (a,b,c,orb) to a unique index
   INTEGER FUNCTION label(a,b,c,orb)
     IMPLICIT NONE
-    INTEGER a,b,orb
+    INTEGER a,b,c,orb
     label=(a-1)*Lb*Lc*norb+(b-1)*Lc*norb+(c-1)*norb+orb
   END FUNCTION
 
@@ -162,7 +162,7 @@ CONTAINS
   SUBROUTINE set_kmat()
     IMPLICIT NONE
     REAL(8), PARAMETER :: twopi=acos(-1d0)*2
-    INTEGER a,b,c,orb,i
+    INTEGER a,b,c,orb,i,flv
     INTEGER a2,b2,c2,orb2,i2
     INTEGER da,db,dc
     COMPLEX(8) boundary
@@ -248,6 +248,7 @@ CONTAINS
   !         after this subroutine, kmat is changed and must be set again
   SUBROUTINE set_expk()
     USE dqmc_complex, ONLY : nsite,expk,inv_expk,expk_half,inv_expk_half
+    USE matrixlib
     IMPLICIT NONE
     INTEGER i,j,flv
     REAL(8) eval(nsite)
@@ -272,7 +273,8 @@ CONTAINS
   ! NOTICE: before calling this subroutine, kmat must be generated and expk_half must be set
   !         after this subroutine, kmat is changed and must be set again
   SUBROUTINE set_slater()
-    USE dqmc_complex, ONLY : proj,nsite,nelec,slater,slater_U,slater_D,slater_R,expk_half
+    USE dqmc_complex, ONLY : proj,nsite,nelec,slater,slater_Q,slater_D,slater_R,expk_half,inv_expk_half
+    USE matrixlib
     IMPLICIT NONE
     INTEGER flv
     REAL(8) eval(nsite)
@@ -280,26 +282,27 @@ CONTAINS
       PRINT*,'slater is not needed for T>0'
       RETURN
     END IF
-    IF(abs(matmul(expk_half(1,:,1),inv_expk_half(:,1,1))-1d0)>1d-6)THEN
+    IF(abs(dot_product(expk_half(1,:,1),inv_expk_half(:,1,1))-1d0)>1d-6)THEN
       PRINT*,'expk_half has not been correctly set. It is required for 2nd-order Trotter.'
       CALL exit(0)
     END IF
     IF(.not.allocated(slater))ALLOCATE(slater(nsite,nelec,nflv))
-    IF(.not.allocated(slater_U))ALLOCATE(slater_U(nsite,nelec,nflv))
+    IF(.not.allocated(slater_Q))ALLOCATE(slater_Q(nsite,nelec,nflv))
     IF(.not.allocated(slater_D))ALLOCATE(slater_D(nelec,nflv))
     IF(.not.allocated(slater_R))ALLOCATE(slater_R(nelec,nelec,nflv))
     DO flv=1,nflv
       CALL eigen(nsite,kmat(:,:,flv),eval)
       slater(:,:,flv)=kmat(:,1:nelec,flv)
       slater(:,:,flv)=matmul(expk_half(:,:,flv),slater(:,:,flv))
-      slater_U(:,:,flv)=slater(:,:,flv)
-      CALL dqr(nsite,nelec,slater_U(:,:,flv),slater_R(:,:,flv),slater_D(:,flv))
+      slater_Q(:,:,flv)=slater(:,:,flv)
+      CALL qdr(nsite,nelec,slater_Q(:,:,flv),slater_R(:,:,flv),slater_D(:,flv))
     END DO
   END SUBROUTINE
 
   ! initialize auxiliary field configuration randomly
   SUBROUTINE init_field_random()
     USE dqmc_complex, ONLY : nsite,ntime,field
+    USE randomlib
     IMPLICIT NONE
     INTEGER ifield,time,site
     IF(.not.allocated(field)) ALLOCATE(field(nsite,ntime,nising+nphi))
@@ -339,6 +342,7 @@ CONTAINS
   
   !
   SUBROUTINE set_expf_ising()
+    USE matrixlib
     IMPLICIT NONE
     INTEGER ifield,n,z,d,a,b,s,s2
     
@@ -347,9 +351,9 @@ CONTAINS
     
     IF(.not.allocated(fmat_ising_U)) ALLOCATE(fmat_ising_U(n,n,nising))
     IF(.not.allocated(fmat_ising_expE)) ALLOCATE(fmat_ising_expE(n,nising))
-    IF(.not.allocated(expflam)) ALLOCATE(expflam(n,n,z,nising))
-    IF(.not.allocated(inv_expflam)) ALLOCATE(inv_expflam(n,n,z,nising))
-    IF(.not.allocated(diff_ef)) ALLOCATE(diff_ef(n,n,z,z,nising))
+    IF(.not.allocated(expflam_ising)) ALLOCATE(expflam_ising(n,n,z,nising))
+    IF(.not.allocated(inv_expflam_ising)) ALLOCATE(inv_expflam_ising(n,n,z,nising))
+    IF(.not.allocated(diff_ef_ising)) ALLOCATE(diff_ef_ising(n,n,z,z,nising))
     
     DO ifield=1,nising
       
@@ -364,9 +368,9 @@ CONTAINS
       DO s=1,z
         DO a=1,d
           DO b=1,d
-            expflam(a,b,s,ifield)=sum(fmat_ising_U(a,1:d,ifield) &
+            expflam_ising(a,b,s,ifield)=sum(fmat_ising_U(a,1:d,ifield) &
             & *fmat_ising_expE(1:d,ifield)*conjg(fmat_ising_U(b,1:d,ifield)))    
-            inv_expflam(a,b,s,ifield)=sum(fmat_ising_U(a,1:d,ifield) &
+            inv_expflam_ising(a,b,s,ifield)=sum(fmat_ising_U(a,1:d,ifield) &
             & /fmat_ising_expE(1:d,ifield)*conjg(fmat_ising_U(b,1:d,ifield)))    
           END DO
         END DO
@@ -375,10 +379,10 @@ CONTAINS
       ! set expf((lam'-lam)*fmat)-1
       DO s=1,z
         DO s2=1,z
-          diff_ef(1:d,1:d,s,s2,ifield)=matmul(expflam(1:d,1:d,s,ifield), &
-          & inv_expvlam(1:d,1:d,s2,ifield))
+          diff_ef_ising(1:d,1:d,s,s2,ifield)=matmul(expflam_ising(1:d,1:d,s,ifield), &
+          & inv_expflam_ising(1:d,1:d,s2,ifield))
           DO a=1,d
-            diff_ef(a,a,s,s2,ifield)=diff_ef(a,a,s,s2,ifield)-1d0
+            diff_ef_ising(a,a,s,s2,ifield)=diff_ef_ising(a,a,s,s2,ifield)-1d0
           END DO
         END DO
       END DO
@@ -389,13 +393,14 @@ CONTAINS
   
   !
   SUBROUTINE set_expf_phi()
+    USE matrixlib
     IMPLICIT NONE
     INTEGER ifield,n,d
     
     n=maxval(ndim_phi)
     
-    IF(.not.allocated(fmat_ising_U)) ALLOCATE(fmat_ising_U(n,n,nphi))
-    IF(.not.allocated(fmat_ising_expE)) ALLOCATE(fmat_ising_expE(n,nphi))
+    IF(.not.allocated(fmat_phi_U)) ALLOCATE(fmat_phi_U(n,n,nphi))
+    IF(.not.allocated(fmat_phi_expE)) ALLOCATE(fmat_phi_expE(n,nphi))
     
     DO ifield=1,nphi
       
