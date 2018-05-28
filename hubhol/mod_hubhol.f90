@@ -1,6 +1,6 @@
 MODULE hubhol
   
-  !
+  ! 
   REAL(8) U,V,debye
 
   !
@@ -11,10 +11,16 @@ END MODULE hubhol
 
 SUBROUTINE generate_newfield(newfield,site,time,delta,ifield)
   USE dqmc_complex, ONLY : ndim_field
-  !USE model_complex
+  USE model_complex, ONLY : nising,generate_newising_random,generate_newphi_random
   IMPLICIT NONE
   INTEGER site,time,ifield
   COMPLEX(8) newfield,delta(ndim_field(ifield),ndim_field(ifield))
+  IF(ifield<=nising)THEN
+    CALL generate_newising_random(newising,site,time,delta,ifield)
+    newfield=newising
+  ELSE
+    CALL generate_newphi_random(newfield,site,time,delta,ifield-nising)
+  END IF
 END SUBROUTINE
 
 SUBROUTINE generate_newfield_global(ifield)

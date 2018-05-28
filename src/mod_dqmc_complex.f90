@@ -165,7 +165,7 @@ MODULE dqmc_complex
 
   ! configuration of auxiliary fields
   ! dimension (nsite, ntime, nfield)
-  COMPLEX, ALLOCATABLE :: field(:,:,:)
+  COMPLEX(8), ALLOCATABLE :: field(:,:,:)
 
   ! subspace dimension of each auxiliary field
   ! dimension (nfield)
@@ -434,7 +434,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(8) runtime_,t1
 #ifdef MPI
-    IF(id==0)t1=mpi_wtime()
+    t1=mpi_wtime()
 #else
     CALL cpu_time(t1)
 #endif
@@ -603,7 +603,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: ifield
     INTEGER flv,i
-    INTEGER, ALLOCATABLE :: ising_old(:,:),ising_new(:,:)
     REAL(8) paccept
     COMPLEX(8) oldfield(nsite,ntime),newfield(nsite,ntime)
     COMPLEX(8) ratio(nflv),rtot
@@ -613,8 +612,10 @@ CONTAINS
     ! calculate old determinant from scratch
     IF(proj)THEN
       CALL update_scratch_T0(1)
+      ALLOCATE(dvec(nelec,nflv),dvec_old(nelec,nflv))
     ELSE
       CALL update_scratch(1)
+      ALLOCATE(dvec(nsite,nflv),dvec_old(nsite,nflv))
     END IF
 
     ! save eigenvalues of the old determinant
@@ -1101,7 +1102,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time,ifield,d,flv
     LOGICAL, INTENT(IN) :: inv
-    INTEGER a,b,site,sitea,siteb
+    INTEGER a,site,sitea
     COMPLEX(8) matrix(nsite,d),expV(ndim_field(ifield),ndim_field(ifield))
     COMPLEX(8) gtmp(ndim_field(ifield),d)
     DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
@@ -1125,7 +1126,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time,ifield,d,flv
     LOGICAL, INTENT(IN) :: inv
-    INTEGER a,b,site,sitea,siteb
+    INTEGER a,site,sitea
     COMPLEX(8) matrix(d,nsite),expV(ndim_field(ifield),ndim_field(ifield))
     COMPLEX(8) gtmp(d,ndim_field(ifield))
     DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
