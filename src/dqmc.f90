@@ -1,22 +1,25 @@
 !---------------------------------------------------------------------------
-! Tis MODULE is designed for defining a 3D (1-2D are special cases) fermionic 
-! lattice coupling to boson fields. The boson fields can be either descrete 
-! (called ising) or continuous (called phi).
+! This is a wrapper of the dqmc_core. It defines a 3D (1-2D are special cases) 
+! fermionic lattice coupling to boson fields. The boson fields can be either 
+! descrete (called ising) or continuous (called phi).
 !
 ! NOTICE: In this module, uniform fermion-fermion and fermion-boson
 ! interactions are supposed. For e.g. disorder case, we can simply add
 ! site-dependence to relevant variables, e.g. lam_field, gamma_field, etc.
 !
-! Several useful subroutines are provided to help users to do initialization. 
+! Several useful subroutines are provided:
+! to be added...
 !---------------------------------------------------------------------------
-MODULE model_complex
+MODULE dqmc
+
+  USE dqmc_core
 
   !-------------------------------------------------
   ! fermion field parameters
   !-------------------------------------------------
 
   ! number of fermion flavors
-  INTEGER nflv
+  !INTEGER nflv ! already defined in dqmc_core
 
   ! lattice size
   INTEGER La, Lb, Lc
@@ -69,7 +72,7 @@ MODULE model_complex
   INTEGER, ALLOCATABLE :: ndim_ising(:) 
 
   ! list of all sites belong to one ising field living on one representative site.
-  ! dimension (nsite,maxval(ndim_ising),nfield)
+  ! dimension (nsite,maxval(ndim_ising),nising)
   INTEGER, ALLOCATABLE :: nb_ising(:,:,:)
  
   ! whether an ising field exists?
@@ -89,14 +92,14 @@ MODULE model_complex
   INTEGER, ALLOCATABLE :: isingflip(:,:)
 
   ! form factor of a given ising field
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising)
-  COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:)
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:,:)
 
-  !
-  COMPLEX(8), ALLOCATABLE :: fmat_ising_U(:,:,:)
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat_ising_U(:,:,:,:)
   
-  !
-  REAL(8), ALLOCATABLE :: fmat_ising_expE(:,:)
+  ! dimension (maxval(ndim_ising),nising,nflv)
+  REAL(8), ALLOCATABLE :: fmat_ising_expE(:,:,:)
 
   ! lambda of the ising field
   ! dimension (maxval(isingmax),nising)
@@ -107,12 +110,12 @@ MODULE model_complex
   COMPLEX(8), ALLOCATABLE :: gamma_ising(:,:)
 
   ! exp(lam*F) and exp(-lam*F)
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,nising)
-  COMPLEX(8), ALLOCATABLE :: expflam_ising(:,:,:,:), inv_expflam_ising(:,:,:,:)
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,nising,nflv)
+  COMPLEX(8), ALLOCATABLE :: expflam_ising(:,:,:,:,:), inv_expflam_ising(:,:,:,:,:)
   
   ! exp((lam'-lam)*F)-1
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,isingmax,nising)
-  COMPLEX(8), ALLOCATABLE :: diff_ef_ising(:,:,:,:,:)
+  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,isingmax,nising,nflv)
+  COMPLEX(8), ALLOCATABLE :: diff_ef_ising(:,:,:,:,:,:)
 
 
   !--------------------------------------------------
@@ -140,14 +143,14 @@ MODULE model_complex
   ! dimension (nphi)
   COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
 
-  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi)
-  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:)
+  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:,:)
 
-  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi)
-  COMPLEX(8), ALLOCATABLE :: fmat_phi_U(:,:,:)
+  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat_phi_U(:,:,:,:)
 
-  ! dimension (maxval(ndim_phi),nphi)
-  REAL(8), ALLOCATABLE :: fmat_phi_expE(:,:)
+  ! dimension (maxval(ndim_phi),nphi,nflv)
+  REAL(8), ALLOCATABLE :: fmat_phi_expE(:,:,:)
 
 CONTAINS
 
@@ -247,8 +250,6 @@ CONTAINS
   ! NOTICE: before calling this subroutine, kmat must be generated
   !         after this subroutine, kmat is changed and must be set again
   SUBROUTINE set_expk()
-    USE dqmc_complex, ONLY : nsite,expk,inv_expk,expk_half,inv_expk_half
-    USE matrixlib
     IMPLICIT NONE
     INTEGER i,j,flv
     REAL(8) eval(nsite)
@@ -273,8 +274,6 @@ CONTAINS
   ! NOTICE: before calling this subroutine, kmat must be generated and expk_half must be set
   !         after this subroutine, kmat is changed and must be set again
   SUBROUTINE set_slater()
-    USE dqmc_complex, ONLY : proj,nsite,nelec,slater,slater_Q,slater_D,slater_R,expk_half,inv_expk_half
-    USE matrixlib
     IMPLICIT NONE
     INTEGER flv
     REAL(8) eval(nsite)
@@ -299,26 +298,24 @@ CONTAINS
     END DO
   END SUBROUTINE
 
-  ! initialize auxiliary field configuration randomly
-  SUBROUTINE init_field_random()
-    USE dqmc_complex, ONLY : nsite,ntime,field
-    USE randomlib
+  !
+  SUBROUTINE init_ising_random(ifield,ifield_tot)
     IMPLICIT NONE
-    INTEGER ifield,time,site
-    IF(.not.allocated(field)) ALLOCATE(field(nsite,ntime,nising+nphi))
-    field=0d0
-    DO ifield=1,nising; IF(.not.mask_ising(ifield))CYCLE
-      DO time=1,ntime
-        DO site=1,nsite
-          IF(mask_ising_site(site,ifield)) field(site,time,ifield)=irand(isingmax(ifield))+1
-        END DO
+    INTEGER ifield,ifield_tot,time,site
+    DO time=1,ntime
+      DO site=1,nsite
+        IF(mask_ising_site(site,ifield)) field(site,time,ifield_tot)=irand(isingmax(ifield))+1
       END DO
     END DO
-    DO ifield=1,nphi; IF(.not.mask_phi(ifield))CYCLE
-      DO time=1,ntime
-        DO site=1,nsite
-          IF(mask_phi_site(site,ifield)) field(site,time,nising+ifield)=drand_sym()*dphi(ifield)
-        END DO
+  END SUBROUTINE
+
+  !
+  SUBROUTINE init_phi_random(ifield,ifield_tot)
+    IMPLICIT NONE
+    INTEGER ifield,ifield_tot,time,site
+    DO time=1,ntime
+      DO site=1,nsite
+        IF(mask_phi_site(site,ifield)) field(site,time,ifield_tot)=drand_sym()*dphi(ifield)
       END DO
     END DO
   END SUBROUTINE
@@ -342,79 +339,162 @@ CONTAINS
   
   !
   SUBROUTINE set_expf_ising()
-    USE matrixlib
     IMPLICIT NONE
-    INTEGER ifield,n,z,d,a,b,s,s2
+    INTEGER ifield,n,z,d,a,b,s,s2,flv
     
     n=maxval(ndim_ising)
     z=maxval(isingmax)
     
-    IF(.not.allocated(fmat_ising_U)) ALLOCATE(fmat_ising_U(n,n,nising))
-    IF(.not.allocated(fmat_ising_expE)) ALLOCATE(fmat_ising_expE(n,nising))
-    IF(.not.allocated(expflam_ising)) ALLOCATE(expflam_ising(n,n,z,nising))
-    IF(.not.allocated(inv_expflam_ising)) ALLOCATE(inv_expflam_ising(n,n,z,nising))
-    IF(.not.allocated(diff_ef_ising)) ALLOCATE(diff_ef_ising(n,n,z,z,nising))
+    IF(.not.allocated(fmat_ising_U)) ALLOCATE(fmat_ising_U(n,n,nising,nflv))
+    IF(.not.allocated(fmat_ising_expE)) ALLOCATE(fmat_ising_expE(n,nising,nflv))
+    IF(.not.allocated(expflam_ising)) ALLOCATE(expflam_ising(n,n,z,nising,nflv))
+    IF(.not.allocated(inv_expflam_ising)) ALLOCATE(inv_expflam_ising(n,n,z,nising,nflv))
+    IF(.not.allocated(diff_ef_ising)) ALLOCATE(diff_ef_ising(n,n,z,z,nising,nflv))
     
     DO ifield=1,nising
       
       d=ndim_ising(ifield)
 
-      ! set fmat_ising_U and fmat_ising_expE
-      fmat_ising_U(1:d,1:d,ifield)=fmat_ising(1:d,1:d,ifield)
-      CALL eigen(d,fmat_ising_U(1:d,1:d,ifield),fmat_ising_expE(1:d,ifield))
-      fmat_ising_expE(1:d,ifield)=exp(fmat_ising_expE(1:d,ifield))
-      
-      ! set expf(lam*fmat) and expf(-lam*fmat)
-      DO s=1,z
-        DO a=1,d
-          DO b=1,d
-            expflam_ising(a,b,s,ifield)=sum(fmat_ising_U(a,1:d,ifield) &
-            & *fmat_ising_expE(1:d,ifield)*conjg(fmat_ising_U(b,1:d,ifield)))    
-            inv_expflam_ising(a,b,s,ifield)=sum(fmat_ising_U(a,1:d,ifield) &
-            & /fmat_ising_expE(1:d,ifield)*conjg(fmat_ising_U(b,1:d,ifield)))    
-          END DO
-        END DO
-      END DO
-      
-      ! set expf((lam'-lam)*fmat)-1
-      DO s=1,z
-        DO s2=1,z
-          diff_ef_ising(1:d,1:d,s,s2,ifield)=matmul(expflam_ising(1:d,1:d,s,ifield), &
-          & inv_expflam_ising(1:d,1:d,s2,ifield))
+      DO flv=1,nflv
+
+        ! set fmat_ising_U and fmat_ising_expE
+        fmat_ising_U(1:d,1:d,ifield,flv)=fmat_ising(1:d,1:d,ifield,flv)
+        CALL eigen(d,fmat_ising_U(1:d,1:d,ifield,flv),fmat_ising_expE(1:d,ifield,flv))
+        fmat_ising_expE(1:d,ifield,flv)=exp(fmat_ising_expE(1:d,ifield,flv))
+        
+        ! set expf(lam*fmat) and expf(-lam*fmat)
+        DO s=1,z
           DO a=1,d
-            diff_ef_ising(a,a,s,s2,ifield)=diff_ef_ising(a,a,s,s2,ifield)-1d0
+            DO b=1,d
+              expflam_ising(a,b,s,ifield,flv)=sum(fmat_ising_U(a,1:d,ifield,flv) &
+                & *fmat_ising_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_ising_U(b,1:d,ifield,flv)))    
+              inv_expflam_ising(a,b,s,ifield,flv)=sum(fmat_ising_U(a,1:d,ifield,flv) &
+                & /fmat_ising_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_ising_U(b,1:d,ifield,flv)))    
+            END DO
           END DO
         END DO
+        
+        ! set expf((lam'-lam)*fmat)-1
+        DO s=1,z
+          DO s2=1,z
+            diff_ef_ising(1:d,1:d,s,s2,ifield,flv)=matmul(expflam_ising(1:d,1:d,s,ifield,flv), &
+              & inv_expflam_ising(1:d,1:d,s2,ifield,flv))
+            DO a=1,d
+              diff_ef_ising(a,a,s,s2,ifield,flv)=diff_ef_ising(a,a,s,s2,ifield,flv)-1d0
+            END DO
+          END DO
+        END DO
+
       END DO
 
     END DO
+
+    print*,'lam_ising',lam_ising
+    print*,'fmat_ising',fmat_ising
+    print*,'fmat_ising_U',fmat_ising_U
+    print*,'fmat_ising_expE',fmat_ising_expE
+    print*,'expflam_ising',expflam_ising
+    print*,'inv_expflam_ising',inv_expflam_ising
+    print*,'delta',diff_ef_ising
+    read*
 
   END SUBROUTINE
   
   !
   SUBROUTINE set_expf_phi()
-    USE matrixlib
     IMPLICIT NONE
-    INTEGER ifield,n,d
+    INTEGER ifield,n,d,flv
     
     n=maxval(ndim_phi)
     
-    IF(.not.allocated(fmat_phi_U)) ALLOCATE(fmat_phi_U(n,n,nphi))
-    IF(.not.allocated(fmat_phi_expE)) ALLOCATE(fmat_phi_expE(n,nphi))
+    IF(.not.allocated(fmat_phi_U)) ALLOCATE(fmat_phi_U(n,n,nphi,nflv))
+    IF(.not.allocated(fmat_phi_expE)) ALLOCATE(fmat_phi_expE(n,nphi,nflv))
     
     DO ifield=1,nphi
       
       d=ndim_phi(ifield)
 
-      ! set fmat_ising_U and fmat_ising_expE
-      fmat_phi_U(1:d,1:d,ifield)=fmat_phi(1:d,1:d,ifield)
-      CALL eigen(d,fmat_phi_U(1:d,1:d,ifield),fmat_phi_expE(1:d,ifield))
-      fmat_phi_expE(1:d,ifield)=exp(fmat_phi_expE(1:d,ifield))
+      DO flv=1,nflv
+
+        ! set fmat_ising_U and fmat_ising_expE
+        fmat_phi_U(1:d,1:d,ifield,flv)=fmat_phi(1:d,1:d,ifield,flv)
+        CALL eigen(d,fmat_phi_U(1:d,1:d,ifield,flv),fmat_phi_expE(1:d,ifield,flv))
+        fmat_phi_expE(1:d,ifield,flv)=exp(fmat_phi_expE(1:d,ifield,flv))
+
+      END DO
       
     END DO
 
   END SUBROUTINE
- 
-END MODULE model_complex
 
+  !
+  SUBROUTINE generate_newising_local(newising,oldising,delta,ifield)
+    IMPLICIT NONE
+    INTEGER newising,oldising,ifield,d,flv
+    COMPLEX(8) delta(ndim_ising(ifield),ndim_ising(ifield),nflv)
+    d=ndim_ising(ifield)
+    newising=isingflip(irand(isingmax(ifield)-1)+1,oldising)
+    DO flv=1,nflv
+      delta(1:d,1:d,flv)=diff_ef_ising(1:d,1:d,newising,oldising,ifield,flv)
+    END DO
+  END SUBROUTINE
 
+  !
+  SUBROUTINE generate_newphi_local(newphi,oldphi,delta,ifield)
+    IMPLICIT NONE
+    INTEGER ifield,d,a,b,flv
+    COMPLEX(8) newphi,oldphi,delta(ndim_phi(ifield),ndim_phi(ifield),nflv)
+    d=ndim_phi(ifield)
+    newphi=oldphi+drand_sym()*dphi(ifield)
+    DO flv=1,nflv
+      DO a=1,d
+        DO b=1,d
+          delta(a,b,flv)=sum(fmat_phi_U(a,1:d,ifield,flv)*fmat_phi_expE(1:d,ifield,flv) &
+            & **(newphi-oldphi)*conjg(fmat_phi_U(b,1:d,ifield,flv)))
+        END DO
+        delta(a,a,flv)=delta(a,a,flv)-1d0
+      END DO
+    END DO
+  END SUBROUTINE
+
+  !
+  SUBROUTINE get_expV_ising(newising,ifield,flv,inv,expV)
+    IMPLICIT NONE
+    INTEGER newising,ifield,flv,d
+    LOGICAL inv
+    COMPLEX(8) expV(ndim_ising(ifield),ndim_ising(ifield))
+    d=ndim_ising(ifield)
+    IF(inv)THEN
+      expV=inv_expflam_ising(1:d,1:d,newising,ifield,flv)
+    ELSE
+      expV=expflam_ising(1:d,1:d,newising,ifield,flv)
+    END IF
+  END SUBROUTINE
+
+  !
+  SUBROUTINE get_expV_phi(newphi,ifield,flv,inv,expV)
+    IMPLICIT NONE
+    INTEGER ifield,flv,a,b,d
+    LOGICAL inv
+    COMPLEX(8) newphi,expV(ndim_phi(ifield),ndim_phi(ifield))
+    d=ndim_phi(ifield)
+    DO a=1,d
+      DO b=1,d
+        IF(inv)THEN
+          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)*fmat_phi_expE(1:d,ifield,flv) &
+            & **newphi*conjg(fmat_phi_U(b,1:d,ifield,flv)))
+        ELSE
+          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)/fmat_phi_expE(1:d,ifield,flv) &
+            & **newphi*conjg(fmat_phi_U(b,1:d,ifield,flv)))
+        END IF
+      END DO
+    END DO
+  END SUBROUTINE
+
+END MODULE dqmc
+
+PROGRAM main
+  USE dqmc
+  IMPLICIT NONE
+  CALL dqmc_driver()
+END PROGRAM

@@ -127,7 +127,7 @@ CONTAINS
     COMPLEX(8) work(64*n),a(n,n)
     IF(n<=0)STOP 'N<=0 is invalid, inside DEIGEN'
     IF(n==1)THEN
-      v(1)=a(1,1);a(1,1)=1d0;RETURN
+      v(1)=real(a(1,1));a(1,1)=1d0;RETURN
     END IF
     CALL zheev('v','u',n,a,n,v,work,64*n,rwork,info)
     IF(info/=0)STOP 'ERROR @ ZHEEV, inside ZEIGEN'

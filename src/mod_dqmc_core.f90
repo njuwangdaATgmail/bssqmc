@@ -48,7 +48,7 @@
 ! - MC averaged observable x and its errbar can be read out by calling
 !     get_pool(x,x_err)
 ! 
-! generate_newfield(newfield,site,time,delta,ifield)
+! generate_newfield_local(newfield,site,time,delta,ifield)
 ! - generate newfield at (site,time) and return
 !     delta = exp((newfield-oldfield)*F) - 1
 !   where F is the form factor of the auxiliary field
@@ -70,7 +70,7 @@
 !
 !------------------------------------------------------------------------
 
-MODULE dqmc_complex
+MODULE dqmc_core
 
 #ifdef MPI
   USE mpi
@@ -507,7 +507,7 @@ CONTAINS
           oldfield=field(site,time,ifield)
 
           ! generate new configuration by calling an external subroutine which also returns delta=exp(V'-V)-1
-          CALL generate_newfield(newfield,site,time,delta(1:ndim,1:ndim,1:nflv),ifield)
+          CALL generate_newfield_local(newfield,site,time,delta(1:ndim,1:ndim,1:nflv),ifield)
 
           ! calculate determinant ratio for each flavor
           IF(ndim==1)THEN
@@ -1255,6 +1255,6 @@ CONTAINS
     END IF
   END SUBROUTINE HSgeneral
 
-END MODULE dqmc_complex
+END MODULE dqmc_core
 
 
