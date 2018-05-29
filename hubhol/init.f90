@@ -42,6 +42,7 @@ SUBROUTINE init()
   READ(10,*) nscratch
   READ(10,*) ngroup
   READ(10,*) randomseed
+  randomseed=randomseed+701703*id; CALL init_rng(randomseed)
   READ(10,*) newMetro
 
   READ(10,*) norb

@@ -481,10 +481,10 @@ CONTAINS
     DO a=1,d
       DO b=1,d
         IF(inv)THEN
-          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)*fmat_phi_expE(1:d,ifield,flv) &
+          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)/fmat_phi_expE(1:d,ifield,flv) &
             & **newphi*conjg(fmat_phi_U(b,1:d,ifield,flv)))
         ELSE
-          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)/fmat_phi_expE(1:d,ifield,flv) &
+          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)*fmat_phi_expE(1:d,ifield,flv) &
             & **newphi*conjg(fmat_phi_U(b,1:d,ifield,flv)))
         END IF
       END DO

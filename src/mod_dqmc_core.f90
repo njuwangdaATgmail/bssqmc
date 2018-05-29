@@ -344,10 +344,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER nblock
 
-    ! set up the random number seed on different cores
-    randomseed=randomseed+701703*id
-    CALL init_rng(randomseed)
-
     ALLOCATE(g(nsite,nsite,nflv))
 
     ALLOCATE(Ntotal_field(nfield),Naccept_field(nfield))
@@ -457,9 +453,9 @@ CONTAINS
 
         ! update Green's function from scratch every nscratch steps
         IF(proj)THEN
-          CALL update_scratch_T0(time)
+          CALL update_scratch_T0_(time)
         ELSE
-          CALL update_scratch(time)
+          CALL update_scratch_(time)
         END IF
 
       ELSE
@@ -726,6 +722,117 @@ CONTAINS
       END DO
     END DO
   END SUBROUTINE sort_
+
+  !> calculate T=0 Green's function from definition, using QR decomposition stabilization algorithm.
+  SUBROUTINE update_scratch_T0_(time)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: time
+    INTEGER flag,p,i,flv
+    COMPLEX(8) t(nelec,nelec),lmat(nelec,nsite),rmat(nsite,nelec),gfast(nsite,nsite)!,tmp(nsite,nsite)
+    
+    DO flv=1,nflv
+
+      gfast=g(:,:,flv)
+      
+      lmat=conjg(transpose(slater(:,:,flv)))
+      CALL zlq(nelec,nsite,lmat,t)
+      flag=0
+      DO p=ntime,time,-1
+        CALL evolve_right(p,lmat,nelec,flv,.false.)
+        flag=flag+1
+        IF(flag/=ngroup)CYCLE
+        flag=0
+        CALL zlq(nelec,nsite,lmat,t)
+      END DO
+
+      rmat=slater(:,:,flv)
+      CALL zqr(nsite,nelec,rmat,t)
+      flag=0
+      DO p=1,time-1
+        CALL evolve_left(p,rmat,nelec,flv,.false.)
+        flag=flag+1
+        IF(flag/=ngroup)CYCLE
+        flag=0
+        CALL zqr(nsite,nelec,rmat,t)
+      END DO
+
+      t=matmul(lmat,rmat)
+      !CALL zgemm('n','n',nelec,nelec,nsite,zone,lmat,nelec,rmat,nsite,zzero,t,nelec)
+      CALL inverse(nelec,t)
+
+      g(:,:,flv)=-matmul(rmat,matmul(t,lmat))
+      !CALL zgemm('n','n',nelec,nsite,nelec,zone,t,nelec,lmat,nelec,zzero,tmp,nelec)
+      !CALL zgemm('n','n',nsite,nsite,nelec,zmone,rmat,nsite,tmp,nelec,zzero,g,nsite)
+
+      DO i=1,nsite
+        g(i,i,flv)=g(i,i,flv)+1d0
+      END DO
+      
+      IF(time>1)THEN
+        gfast=matmul(matmul(expk(:,:,flv),gfast),inv_expk(:,:,flv))
+        err_fast=max(maxval(abs(gfast-g(:,:,flv))),err_fast)
+      END IF
+
+    END DO
+  
+  END SUBROUTINE update_scratch_T0_
+  
+  !> calculate T>0 Green's function from definition, using QDR decomposition stabilization algorithm.
+  SUBROUTINE update_scratch_(time)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: time
+    INTEGER d,flag,p0,p,i,flv
+    COMPLEX(8) dvec(nsite),qmat(nsite,nsite),rmat(nsite,nsite),gtmp(nsite,nsite),gfast(nsite,nsite)
+    
+    DO flv=1,nflv
+
+      gfast=g(:,:,flv)
+
+      d=nsite
+      
+      dvec=1d0
+      qmat=0d0
+      g(:,:,flv)=0d0
+      DO i=1,d
+        qmat(i,i)=1d0
+        g(i,i,flv)=1d0
+      END DO
+      
+      flag=0
+      DO p0=time,ntime+time-1
+        p=p0;IF(p>ntime)p=p-ntime
+        CALL evolve_left(p,qmat,d,flv,.false.)
+        flag=flag+1
+        IF(flag/=ngroup)CYCLE
+        flag=0
+        DO i=1,d
+          qmat(:,i)=qmat(:,i)*dvec(i)
+        END DO
+        CALL zqdr(d,d,qmat,rmat,dvec)
+        gtmp=g(:,:,flv)
+        g(:,:,flv)=matmul(rmat,gtmp)
+        !CALL zgemm('n','n',d,d,d,zone,rmat,d,gtmp,d,zzero,g,d)
+      END DO
+      
+      CALL inverse(d,qmat)
+      DO i=1,d
+        g(:,i,flv)=dvec(:)*g(:,i,flv)
+      END DO
+      g(:,:,flv)=g(:,:,flv)+qmat
+      CALL inverse(d,g(:,:,flv))
+      gtmp=g(:,:,flv)
+      g(:,:,flv)=matmul(gtmp,qmat)
+      !CALL zgemm('n','n',d,d,d,zone,gtmp,d,qmat,d,zzero,g,d)
+
+      IF(time>1)THEN  ! when time=1, we may come through a global update, then the following fast update has no meaning
+        gfast=matmul(matmul(expk(:,:,flv),gfast),inv_expk(:,:,flv))
+        err_fast=max(maxval(abs(gfast-g(:,:,flv))),err_fast)
+      END IF
+
+    END DO
+
+  END SUBROUTINE update_scratch_
+
 
   !------------------------------------------------------------------------------------------------
   ! evaluate Green's function from definition directly
@@ -1153,7 +1260,7 @@ CONTAINS
     COMPLEX(8) matrix(nsite,d)
     INTEGER ifield
     DO ifield=1,nfield
-      CALL evolve_left_V(time,ifield,matrix,d,flv,inv)
+      IF(mask_field(ifield)) CALL evolve_left_V(time,ifield,matrix,d,flv,inv)
     END DO
     CALL evolve_left_K(matrix,d,flv,inv,.false.)
   END SUBROUTINE evolve_left
@@ -1167,7 +1274,7 @@ CONTAINS
     INTEGER ifield
     CALL evolve_right_K(matrix,d,flv,inv,.false.)
     DO ifield=nfield,1,-1
-      CALL evolve_right_V(time,ifield,matrix,d,flv,inv)
+      IF(mask_field(ifield)) CALL evolve_right_V(time,ifield,matrix,d,flv,inv)
     END DO
   END SUBROUTINE evolve_right
 

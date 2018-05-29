@@ -10,13 +10,13 @@ f         :proj
 1         :ninterval
 10000000 10000000  : nglobal_ising, nglobal_phi
 1      :ntmpout
-1       :nscratch
-100000       :ngroup
+10       :nscratch
+10       :ngroup
 52501     :randomseed
-0.5d0    :newMetro
+0.0d0    :newMetro
 
 1       :norb
-2   2  1   :La, Lb, Lc
+4   4  1   :La, Lb, Lc
 8          :nelec
 t   t  f   :pbca, pbcb, pbcc
 0d0 0d0 0d0  :twista,twistb,twistc
@@ -27,9 +27,9 @@ t   t  f   :pbca, pbcb, pbcc
 
 0d0 0d0 0d0  :rorb(:,1:norb)
 
-4d0   0d0   1d0      :U,Vph,debye
-0.5          :dphi
-0.2d0       :dphi_global
+4d0   2d0   1d0      :U,Vph,debye
+0.2          :dphi
+0.1d0       :dphi_global
 
 1   1   0  :cuta,cutb,cutc, hopping range
 2         :# of nonzero hopping elements
