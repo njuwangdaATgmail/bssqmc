@@ -44,13 +44,13 @@ SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
     END DO
   ELSE
     newphi=newfield
-    oldphi=field(site,time,ifield-nising)
+    oldphi=field(site,time,ifield)
     rtot=exp(-gph_x2(ifield-nising)*(newphi**2-oldphi**2)) ! potential energy
-    diffnewphi=newphi-field(site,mod(time,ntime)+1,ifield-nising)
-    diffoldphi=oldphi-field(site,mod(time,ntime)+1,ifield-nising)
+    diffnewphi=newphi-field(site,mod(time,ntime)+1,ifield)
+    diffoldphi=oldphi-field(site,mod(time,ntime)+1,ifield)
     rtot=rtot*exp(-gph_p2(ifield-nising)*(diffnewphi**2-diffoldphi**2)) ! kinetic energy on (time,time+1)
-    diffnewphi=newphi-field(site,mod(time-2+ntime,ntime)+1,ifield-nising)
-    diffoldphi=oldphi-field(site,mod(time-2+ntime,ntime)+1,ifield-nising)
+    diffnewphi=newphi-field(site,mod(time-2+ntime,ntime)+1,ifield)
+    diffoldphi=oldphi-field(site,mod(time-2+ntime,ntime)+1,ifield)
     rtot=rtot*exp(-gph_p2(ifield-nising)*(diffnewphi**2-diffoldphi**2)) ! kinetic energy on (time,time-1)
     DO flv=1,nflv
       rtot=rtot*ratio(flv)
@@ -65,10 +65,14 @@ SUBROUTINE generate_newfield_global(ifield)
   USE dqmc
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: ifield
+  INTEGER site
   IF(ifield<=nising)THEN
     CALL init_ising_random(ifield,ifield)
   ELSE
-    CALL init_phi_random(ifield-nising,ifield)
+    !CALL init_phi_random(ifield-nising,ifield)
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+      field(site,:,ifield)=field(site,:,ifield)+dphi_global(ifield-nising)*drand_sym()
+    END DO
   END IF
 END SUBROUTINE
 
@@ -83,7 +87,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
   COMPLEX(8) newphi,oldphi,diffnewphi,diffoldphi
   IF(ifield<=nising)THEN
     rtot=1d0
-    DO site=1,nsite; IF(.not.mask_ising_site(site,ifield))CYCLE
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
       DO time=1,ntime
         newising=nint(real(newfield(site,time)))
         oldising=nint(real(field(site,time,ifield)))
@@ -95,12 +99,12 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
     END DO
   ELSE
     rtot=1d0
-    DO site=1,nsite; IF(.not.mask_phi_site(site,ifield-nising))CYCLE
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
       DO time=1,ntime
         newphi=newfield(site,time)
         oldphi=field(site,time,ifield)
-        diffnewphi=newfield(site,mod(time,ntime)+1)
-        diffoldphi=field(site,mod(time,ntime)+1,ifield)
+        diffnewphi=newphi-newfield(site,mod(time,ntime)+1)
+        diffoldphi=oldphi-field(site,mod(time,ntime)+1,ifield)
         rtot=rtot*exp( -gph_x2(ifield-nising)*(newphi**2-oldphi**2) ) & ! potential energy
           &        *exp( -gph_p2(ifield-nising)*(diffnewphi**2-diffoldphi**2) ) ! kinetic energy
         rtot=rtot*exp(-(newphi-oldphi))  ! ONLY used for PH symmetric case to fix <x>=0

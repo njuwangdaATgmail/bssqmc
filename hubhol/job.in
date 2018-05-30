@@ -6,10 +6,10 @@ f         :proj
 10       :nsp
 1       :nbin
 10000     :nwarmup
-500000     :nmeasure
+20000     :nmeasure
 1         :ninterval
-10000000 10000000  : nglobal_ising, nglobal_phi
-1      :ntmpout
+10000000 1  : nglobal_ising, nglobal_phi
+100      :ntmpout
 10       :nscratch
 10       :ngroup
 52501     :randomseed
@@ -27,7 +27,7 @@ t   t  f   :pbca, pbcb, pbcc
 
 0d0 0d0 0d0  :rorb(:,1:norb)
 
-4d0   2d0   1d0      :U,Vph,debye
+4d0   4d0   1d0      :U,Vph,debye
 0.2          :dphi
 0.1d0       :dphi_global
 

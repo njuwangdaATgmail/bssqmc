@@ -453,9 +453,9 @@ CONTAINS
 
         ! update Green's function from scratch every nscratch steps
         IF(proj)THEN
-          CALL update_scratch_T0_(time)
+          CALL update_scratch_T0(time)
         ELSE
-          CALL update_scratch_(time)
+          CALL update_scratch(time)
         END IF
 
       ELSE

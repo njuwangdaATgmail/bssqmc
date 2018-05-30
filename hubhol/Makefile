@@ -1,9 +1,9 @@
 #===========================================================
 # system parameters
 F90 = mpif90
-FCOPTS = -O2 -cpp -DMPI -fexternal-blas -g -fbacktrace -fbounds-check -Wall -Wextra
+FCOPTS = -O2 -cpp -DMPI -fexternal-blas -fbounds-check -Wall -Wextra #-g -fbacktrace 
 LDOPTS = -O2
-LIBS = -lopenblas #-mkl=sequential -limf 
+LIBS = -lopenblas
 #==========================================================
 # define all obj files
 OBJS = mod_randomlib.o mod_matrixlib.o mod_measpool.o mod_dqmc_core.o dqmc.o \

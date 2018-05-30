@@ -302,6 +302,8 @@ CONTAINS
   SUBROUTINE init_ising_random(ifield,ifield_tot)
     IMPLICIT NONE
     INTEGER ifield,ifield_tot,time,site
+    field(:,:,ifield_tot)=0
+    IF(.not.mask_ising(ifield))RETURN
     DO time=1,ntime
       DO site=1,nsite
         IF(mask_ising_site(site,ifield)) field(site,time,ifield_tot)=irand(isingmax(ifield))+1
@@ -313,6 +315,8 @@ CONTAINS
   SUBROUTINE init_phi_random(ifield,ifield_tot)
     IMPLICIT NONE
     INTEGER ifield,ifield_tot,time,site
+    field(:,:,ifield_tot)=0d0
+    IF(.not.mask_phi(ifield))RETURN
     DO time=1,ntime
       DO site=1,nsite
         IF(mask_phi_site(site,ifield)) field(site,time,ifield_tot)=drand_sym()*dphi(ifield)
@@ -388,15 +392,6 @@ CONTAINS
       END DO
 
     END DO
-
-    print*,'lam_ising',lam_ising
-    print*,'fmat_ising',fmat_ising
-    print*,'fmat_ising_U',fmat_ising_U
-    print*,'fmat_ising_expE',fmat_ising_expE
-    print*,'expflam_ising',expflam_ising
-    print*,'inv_expflam_ising',inv_expflam_ising
-    print*,'delta',diff_ef_ising
-    read*
 
   END SUBROUTINE
   
