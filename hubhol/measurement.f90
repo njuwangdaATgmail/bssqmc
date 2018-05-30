@@ -35,7 +35,7 @@ SUBROUTINE measurement(time)
       Sqz=Sqz+((g3(i,i,1)-g3(i,i,2))*(g3(j,j,1)-g3(j,j,2))+g3(i,j,1)*(deltaij-g3(j,i,1))+ &
         & g3(i,j,2)*(deltaij-g3(j,i,2)))*(-1)**(a-a2+b-b2)*currentphase/nsite
       Sqc=Sqc+((g3(i,i,1)+g3(i,i,2))*(g3(j,j,1)+g3(j,j,2))+g3(i,j,1)*(deltaij-g3(j,i,1))+ &
-        & g3(i,j,2)*(deltaij-g3(j,i,2)))*(-1)**(a-a2*b-b2)*currentphase/nsite
+        & g3(i,j,2)*(deltaij-g3(j,i,2)))*(-1)**(a-a2+b-b2)*currentphase/nsite
     END DO; END DO
   END DO; END DO
   CALL put_pool(Sqz)
