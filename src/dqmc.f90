@@ -10,6 +10,11 @@
 ! Several useful subroutines are provided:
 ! to be added...
 !---------------------------------------------------------------------------
+! Todo:
+! + realize a general UVJ-phonon-phi4 model
+! + add commonly used measurements
+! + provide relevant subroutines to realize any new boson fields.
+!---------------------------------------------------------------------------
 MODULE dqmc
 
   USE dqmc_core
