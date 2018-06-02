@@ -69,6 +69,16 @@
 !   where F is the form factor of the auxiliary field
 !
 !------------------------------------------------------------------------
+!
+! Todo:
+! + add a logical variable to control whether the restart-mechanism is needed
+! + add a logical variable to control whether the Bstring-technique is needed
+! + checkerboard technique: expk=expk1*expk2*... 
+!   where each expki is block diagonalized
+! + add more evolve subroutines to faciliate the calculation of time displaced 
+!   Green's functions
+!
+!
 
 MODULE dqmc_core
 
