@@ -11,9 +11,14 @@
 ! to be added...
 !---------------------------------------------------------------------------
 ! Todo:
-! + realize a general UVJ-phonon-phi4 model
-! + add commonly used measurements
-! + provide relevant subroutines to realize any new boson fields.
+! + aobut initialization: realize a general UVJ-phonon-phi4 model and 
+!   provide relevant subroutines to realize any new boson fields.
+! + about measurement: all measurements are correlation functions
+!   (1) single-particle:  [(x1,y1,z1,orb1), (x2,y2,z2,orb2)]
+!   (2) two-particle:     [(x1,y1,z1,orb1), (x1+dx,y1+dy,z1+dz,orb1')] --> 
+!       (both PP and PH)  [(x2,y2,z2,orb2), (x2+dx,y2+dy,z2+dz,orb2')]
+!                         with form factor fmat_meas(:,:)
+!      so the user only need provide the form factor and its subspace
 !---------------------------------------------------------------------------
 MODULE dqmc
 
