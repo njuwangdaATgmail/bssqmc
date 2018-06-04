@@ -1,0 +1,47 @@
+f         :restart
+f         :proj
+2         :nflv
+4d0      :beta
+0.1     :dtau
+10       :nsp
+1       :nbin
+10000     :nwarmup
+20000     :nmeasure
+1         :ninterval
+10000000 1  : nglobal_ising, nglobal_phi
+100      :ntmpout
+10       :nscratch
+10       :ngroup
+52501     :randomseed
+0.0d0    :newMetro
+
+1       :norb
+4   4  1   :La, Lb, Lc
+8          :nelec
+t   t  f   :pbca, pbcb, pbcc
+0d0 0d0 0d0  :twista,twistb,twistc
+
+1d0 0d0 0d0  :a0r
+0d0 1d0 0d0  :b0r
+0d0 0d0 1d0  :c0r
+
+0d0 0d0 0d0  :rorb(:,1:norb)
+
+4d0   4d0   1d0      :U,Vph,debye
+0.2          :dphi
+0.1d0       :dphi_global
+
+#-----------------------
+# auxiliary field block
+#-----------------------
+
+
+#-----------------------
+# tight binding block
+#-----------------------
+1   1   0  :cuta,cutb,cutc, hopping range
+2         :# of nonzero hopping elements
+1 0 0 1 1 -1d0 0d0   :hop(da,db,orb1,orb2)
+0 1 0 1 1 -1d0 0d0
+
+
