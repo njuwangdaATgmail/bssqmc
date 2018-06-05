@@ -1,3 +1,6 @@
+#---------------------------
+# Monte Carlo control block
+#---------------------------
 f         :restart
 f         :proj
 2         :nflv
@@ -15,6 +18,16 @@ f         :proj
 52501     :randomseed
 0.0d0    :newMetro
 
+
+#-----------------------
+# fermion lattice block
+#-----------------------
+1   1   0  :cuta,cutb,cutc, hopping range
+2         :# of nonzero hopping elements
+1 0 0 1 1 -1d0 0d0   :hop(da,db,orb1,orb2)
+0 1 0 1 1 -1d0 0d0
+
+
 1       :norb
 4   4  1   :La, Lb, Lc
 8          :nelec
@@ -27,21 +40,116 @@ t   t  f   :pbca, pbcb, pbcc
 
 0d0 0d0 0d0  :rorb(:,1:norb)
 
-4d0   4d0   1d0      :U,Vph,debye
-0.2          :dphi
-0.1d0       :dphi_global
-
 #-----------------------
-# auxiliary field block
+# boson field block
 #-----------------------
 
+! nising, nphi
+
+! for each ising field:
+! ndim_ising
+
+! da_1, db_1, dc_1, orb_1
+! ...
+! da_n, db_n, dc_n, orb_n, n=ndim_ising
+
+! mask_ising_site should be given
+! it is true if mod(a,ma)=moda, mod(b,mb)=modb, mod(c,mc)=modc
+! ma_1 moda_1 mb_1 modb_1 mc_1 modc_1 orb_1
+! ...
+! ma_n moda_n mb_n modb_n mc_n modc_n orb_n
+
+! fmat(:,:,nflv)
+
+! if the ising field comes from a descrete HS transformation:
+! g, defined as H = g/2 * (c'*fmat*c)^2
+! then choose which kinds of HS: HS1, HS2, HSgeneral
+
+! make a choice of global update:
+! default_1: totally generate new configuration
+
+! otherwise, if the ising field should be given by the user:
+! isingmax
+! then lam_ising and gamma_ising should be given
+! NOTICE: in this case, the boson action may be complex/nonlocal 
+! and should be given by the user
+
+! for each phi field:
+! ndim_phi
+! da_1, db_1, dc_1, orb_1
+! ...
+! da_n, db_n, dc_n, orb_n, n=ndim_ising
+
+! mask_phi_site should be given
+! it is true if mod(a,ma)=moda, mod(b,mb)=modb, mod(c,mc)=modc
+! ma_1 moda_1 mb_1 modb_1 mc_1 modc_1 orb_1
+! ...
+! ma_n moda_n mb_n modb_n mc_n modc_n orb_n
+
+! fmat(:,:,nflv)
+
+! if the phi field comes from a continuous HS transformation:
+! g, defined as H = g/2 * (c'*fmat*c)^2
+
+! if the phi field has dynamics but is local, e.g. local phonon
+! Vph, debye
+
+! dphi, dphi_global
+
+! make a choice of global update scheme:
+! default_1: phi(site,time)->phi(site,time)+random_shift(site,time)
+! default_2: phi(site,time)->phi(site,time)+random_shift(site)
+! default_3: phi(site,time)->phi(site,time)+random_shift
+! default_4: phi(site,time)->-phi(site,time)
+
+! if the phi field is a phi^4 model, which can be viewed as a 
+! generalized(nonlocal & interacting) phonon field
+! Vph, debye, stiffness, g4
+! 
+! the difficult is how to define the neighbour sites to calculate 
+! the stiffness energy
+! da_1, db_1, dc_1, orb_1, orb'_1
+! ...
+! da_n, db_n, dc_n, orb_n, orb'_n
+!
+! otherwise, the boson action should be given by the user
 
 #-----------------------
-# tight binding block
+# measurement block
 #-----------------------
-1   1   0  :cuta,cutb,cutc, hopping range
-2         :# of nonzero hopping elements
-1 0 0 1 1 -1d0 0d0   :hop(da,db,orb1,orb2)
-0 1 0 1 1 -1d0 0d0
+! trans_sym        ! whether translation symmetry is applied
+! meas_k, meas_r   ! control whether to measure in k or r space
+!                  ! if trans_sym=true, corr(r) is output
+!                  ! if trans_sym=false, corr(r1,r2) is output
 
+! k_mesh
 
+! meas_tau         ! whether unequal-time Green's function is measured
+! nt_meas          ! G(t<=nt_meas) is measured
+
+! n_pp_block  ! particle-particle channel
+! for each correlation function <Fa*Fb>
+! d_pp_block
+! suppose Fa and Fb has the same dimension and fmat
+! this is reanable, since we always measure the correlation between
+! the same physical quantity.
+! d_pp
+! fmat_pp
+! da_1, db_1, dc_1, orb_1
+! ...
+! da_d, db_d, dc_d, orb_d, d=d_pp
+
+! n_ph_block  ! particle-particle channel
+! for each correlation function <Fa*Fb>
+! d_ph_block
+! suppose Fa and Fb has the same dimension and fmat
+! this is reanable, since we always measure the correlation between
+! the same physical quantity.
+! d_ph
+! fmat_ph
+! da_1, db_1, dc_1, orb_1
+! ...
+! da_d, db_d, dc_d, orb_d, d=d_ph
+
+! for boson field, we can measure <phi>, <phi^2>, <dt_phi^2>, <grad_phi^2>
+! other measurements can be added by the user

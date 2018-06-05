@@ -8,6 +8,275 @@ SUBROUTINE init()
   REAL(8) re,re2,re3
   COMPLEX(8) ga,lam
   
+  
+  OPEN(10,file='dqmc.in')
+
+  !--------------------------------
+  ! read in MC control parameters
+  !--------------------------------
+  
+  
+  !--------------------------------
+  ! read in fermion lattice parameters
+  !--------------------------------
+  
+  
+  !--------------------------------
+  ! read in boson field parameters
+  !--------------------------------
+  READ(10,*) nising, nphi
+  
+  ALLOCATE(ndim_ising(nising),ndim_phi(nphi))
+  
+  ifield=0
+  DO i_g=1,n_g     ! ising fields
+
+    ifield=ifield+1
+    
+    ! H = g0/2 * (c'*fmat*c-f0)^2
+    READ(10,*) g0, f0, HS_method
+
+    ! 
+    READ(10,*) nglobal_ising(ifield), global_ising_method(ifield)
+
+    ! set lam_ising and gamma_ising
+    IF(HS_method==1)THEN
+      isingmax(ifield)=2
+      CALL HS1(ga1,lam1,exp(-dtau*g0/2)
+      lam_ising(1:2,ifield)=(/lam1,-lam1/)
+      gamma_ising(1:2,ifield)=(/ga1*exp(-lam1*f0),ga1*exp(lam1*f0)/)
+    ELSEIF(HS_method==2)THEN
+      ! HS2
+    ELSEIF(HS_method==3)THEN
+      ! HSgeneral
+    ELSEif(HS_method==0)THEN
+      CALL set_lam_gamma_ising_user()
+    ELSE
+      IF(id==0)THEN
+        PRINT*,'HS_method=',HS_method,' has no definition.'
+        CALL exit(0)
+      END IF
+    END IF
+
+    READ(10,*) ndim_ising(ifield)
+    
+    ! read in fmat
+    ALLOCATE(fmat_ising(maxval(ndim_ising),maxval(ndim_ising),nising,nflv))
+    DO flv=1,nflv
+      DO k=1,ndim_ising(ifield)
+        READ(10,*) fmat_ising(k,1:ndim_ising(ifield),ifield,flv)
+      END DO
+    END DO
+
+    ! read in the subspace
+    ALLOCATE(nb_ising(nsite,maxval(ndim_ising),nising))   ! WRONG: ndim_ising has not been fully filled
+    DO k=1,ndim_ising(ifield)
+      READ(10,*) da,db,dc,orb2
+      DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(da,db,dc,orb)
+        a2=a+da; b2=b+db; c2=c+dc
+
+        IF(a2<1.and.(.not.pbca)) CYCLE
+        IF(a2>La.and.(.not.pbca)) CYCLE
+        IF(b2<1.and.(.not.pbcb)) CYCLE
+        IF(b2>Lb.and.(.not.pbcb)) CYCLE
+        IF(c2<1.and.(.not.pbcc)) CYCLE
+        IF(c2>Lc.and.(.not.pbcc)) CYCLE
+        
+        IF(a2<1.and.pbca) a2=a2+La
+        IF(a2>La.and.pbca) a2=a2-La
+        IF(b2<1.and.pbcb) b2=b2+Lb
+        IF(b2>Lb.and.pbcb) b2=b2-Lb
+        IF(c2<1.and.pbcc) c2=c2+Lc
+        IF(c2>Lc.and.pbcc) c2=c2-Lc
+        i2=label(a2,b2,c2,orb2)
+        nb_ising(i,k,ifield)=i2
+
+      END DO; END DO; END DO; END DO
+    END DO
+    
+    READ(10,*) n_checkerboard     ! how many HS fields belong to this interaction
+    
+    ! make n_checkerboard-1 copies of ifield
+    DO i_checkerboard=1,n_checkerboard-1
+      nglobal_ising(ifield+i_checkerboard)=nglobal_ising(ifield)
+      global_ising_method(ifield+i_checkerboard)=global_ising_method(ifield)
+      isingmax(ifield+i_checkerboard)=isingmax(ifield)
+      lam_ising(:,ifield+i_checkerboard)=lam_ising(:,ifield)
+      gamma_ising(:,ifield+i_checkerboard)=gamma_ising(:,ifield)
+      fmat_ising(:,:,ifield+i_checkerboard,:)=fmat_ising(:,:,ifield,:)
+      nb_ising(:,:,ifield+i_checkerboard)=nb_ising(:,:,ifield)
+    END DO
+    
+    ! the only difference among these n_checkerboard HS fields is mask_ising_site
+    DO i_checkerboard=1,n_checkerboard
+      ! read in mask_ising_site
+      ALLOCATE(mask_ising_site(nsite,nising))
+      READ(10,*) ntmp
+      DO k=1,ntmp
+        READ(10,*) ma,moda,mb,modb,mc,modc,orb
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc
+          IF(mod(a,ma)==moda.and.mod(b,mb)==modb.and.mod(c,mc)==modc)THEN
+            i=label(a,b,c,orb)
+            mask_ising_site(i,ifield+i_checkerboard-1)=.true.
+          END IF
+        END DO; END DO; END DO
+      END DO
+    END DO
+
+    ifield=ifield+n_checkerboard-1
+
+  END DO
+  
+
+  !
+  READ(10,*) n_g
+  
+  ifield=0
+
+  DO i_g=1,n_g
+
+    ! type_field =  1 : HS1
+    !               2 : HS2
+    !               3 : HSgeneral
+    !              -1 : continuous HS
+    !              -2 : local phonon
+    !          others : undefined yet
+    !             100 : user-defined ising
+    !            -100 : user-defined phi
+    READ(10,*) type_field(ifield)
+    ifield=ifield+1
+
+    SELECT CASE(type_field(ifield))
+    CASE(1)
+
+      READ(10,*) g0,f0
+      isingmax(ifield)=2
+      CALL HS1(ga1,lam1,exp(-dtau*g0/2)
+      lam_ising(1:2,ifield)=(/lam1,-lam1/)
+      gamma_ising(1:2,ifield)=(/ga1*exp(-lam1*f0),ga1*exp(lam1*f0)/)
+
+    CASE(2)
+
+      READ(10,*) g0,f0
+      isingmax(i_ising)=4
+      CALL HS2(...,exp(-dtau*g0/2)
+      lam_ising(1:4,i_ising)=...
+      gamma_ising(1:4,i_ising)=...
+
+    CASE(3)
+
+      ...
+
+    CASE(100)
+
+      CALL set_ising_external(ifield)
+
+    CASE(-100)
+
+      CALL set_phi_external(ifield)
+
+    CASE(-1)
+
+      ...
+
+      READ(10,*) dphi(ifield), dphi_global(ifield)
+
+    CASE(-2)
+
+      READ(10,*) g0,f0,debye
+      ...
+
+      READ(10,*) dphi(ifield), dphi_global(ifield)
+
+    CASE default
+
+      IF(id==0) PRINT*,'undefined yet'
+      CALL exit(0)
+
+    END SELECT
+
+    !
+    READ(10,*) nglobal_field(ifield),global_method(ifield)
+
+    !
+    READ(10,*) ndim_field(ifield)
+  
+    ! read in fmat
+    DO flv=1,nflv
+      DO k=1,ndim_field(ifield)
+        READ(10,*) fmat(k,1:ndim_field(ifield),ifield,flv)
+      END DO
+    END DO
+
+    ! read in the subspace
+    DO k=1,ndim_field(ifield)
+      READ(10,*) da,db,dc,orb2
+      DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(da,db,dc,orb)
+        a2=a+da; b2=b+db; c2=c+dc
+
+        IF(a2<1.and.(.not.pbca)) CYCLE
+        IF(a2>La.and.(.not.pbca)) CYCLE
+        IF(b2<1.and.(.not.pbcb)) CYCLE
+        IF(b2>Lb.and.(.not.pbcb)) CYCLE
+        IF(c2<1.and.(.not.pbcc)) CYCLE
+        IF(c2>Lc.and.(.not.pbcc)) CYCLE
+      
+        IF(a2<1.and.pbca) a2=a2+La
+        IF(a2>La.and.pbca) a2=a2-La
+        IF(b2<1.and.pbcb) b2=b2+Lb
+        IF(b2>Lb.and.pbcb) b2=b2-Lb
+        IF(c2<1.and.pbcc) c2=c2+Lc
+        IF(c2>Lc.and.pbcc) c2=c2-Lc
+        i2=label(a2,b2,c2,orb2)
+        nb_field(i,k,ifield)=i2
+
+      END DO; END DO; END DO; END DO
+    END DO
+
+    READ(10,*) n_checkerboard    ! how many HS fields belong to this interaction
+
+    ! make n_checkerboard-1 copies of ifield
+    DO i_checkerboard=1,n_checkerboard-1
+      type_field(ifield+i_checkerboard)=type_field(ifield)
+      nglobal_field(ifield+i_checkerboard)=nglobal_field(ifield)
+      global_method(ifield+i_checkerboard)=global_method(ifield)
+      isingmax(ifield+i_checkerboard)=isingmax(ifield)
+      lam_ising(:,ifield+i_checkerboard)=lam_ising(:,ifield)
+      gamma_ising(:,ifield+i_checkerboard)=gamma_ising(:,ifield)
+      fmat(:,:,ifield+i_checkerboard,:)=fmat_ising(:,:,ifield,:)
+      nb_field(:,:,ifield+i_checkerboard)=nb_field(:,:,ifield)
+      IF(type_field(ifeld)<0)THEN
+        dphi(ifield+i_checkerboard)=dphi(ifield)
+        dphi_global(ifield+i_checkerboard)=dphi_global(ifield)
+      END IF
+    END DO
+
+   ! the only difference between these n_checkerboard HS fields is mask_field_site
+    DO i_checkerboard=1,n_checkerboard
+      ! read in mask_field_site
+      READ(10,*) ntmp   ! how many conditions to define this HS field
+      DO k=1,ntmp
+        READ(10,*) ma,moda,mb,modb,mc,modc,orb
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc
+          IF(mod(a,ma)==moda.and.mod(b,mb)==modb.and.mod(c,mc)==modc)THEN
+            i=label(a,b,c,orb)
+            mask_field_site(i,ifield+i_checkerboard-1)=.true.
+          END IF
+        END DO; END DO; END DO
+      END DO
+    END DO
+
+    ifield=ifield+n_checkerboard-1
+
+  END DO
+
+
+  
+  !--------------------------------
+  ! read in measurement parameters
+  !--------------------------------
+  
+  
   nising=1
   nphi=1
   nfield=nising+nphi

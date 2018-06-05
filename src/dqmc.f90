@@ -20,6 +20,9 @@
 !                         with form factor fmat_meas(:,:)
 !      so the user only need provide the form factor and its subspace
 !---------------------------------------------------------------------------
+!
+! the boson fields are redefined with no need to distinguish ising and phi
+! isingmax=0 is used to identify continuous boson fields
 MODULE dqmc
 
   USE dqmc_core
@@ -67,100 +70,60 @@ MODULE dqmc
   ! kinetic Hamiltonian
   COMPLEX(8), ALLOCATABLE :: kmat(:,:,:)
 
-  !---------------------------------------------------
-  ! Ising-type boson field parameters
-  !   gamma(field) * exp( lam(field) * fmat(:,:) )
-  ! NOTICE: lam can be viewed as fermion-boson coupling and
-  !         gamma can be viewed as free-boson action
-  !---------------------------------------------------
+  
+  !--------------------------------------------------
+  ! boson field parameters
+  !   gamma_ising * exp( lam_ising * (fmat-f0) )
+  ! ->gamma_ising * exp( lam_ising * fmat )
+  ! or
+  !   exp( - field * f0 ) * exp( field * fmat )
+  !--------------------------------------------------
 
-  ! number of ising fields
-  INTEGER nising
-
-  ! dimension for each ising field
-  ! dimension (nising)
-  INTEGER, ALLOCATABLE :: ndim_ising(:) 
-
-  ! list of all sites belong to one ising field living on one representative site.
-  ! dimension (nsite,maxval(ndim_ising),nising)
-  INTEGER, ALLOCATABLE :: nb_ising(:,:,:)
- 
-  ! whether an ising field exists?
-  ! dimension (nising)
-  LOGICAL, ALLOCATABLE :: mask_ising(:)
-
-  ! whether a site lives an ising field
-  ! dimension (nsite,nising)
-  LOGICAL, ALLOCATABLE :: mask_ising_site(:,:)
-
-  ! the number of allowed values of an ising field
-  ! dimension (nising)
+  ! the type of the boson field
+  ! dimension (nfield)
+  INTEGER, ALLOCATABLE :: type_field(:)
+  
+  ! the number of allowed values of the boson field
+  ! isingmax=0 corresponds to a continuous field
+  ! dimension (nfield)
   INTEGER, ALLOCATABLE :: isingmax(:)
 
   ! flip an ising field to a new value
   ! dimension (maxval(isingmax)-1,maxval(isingmax))
   INTEGER, ALLOCATABLE :: isingflip(:,:)
 
-  ! form factor of a given ising field
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:,:)
+  ! update phi by changing to phi+dphi/dphi_global
+  ! dimension (nfield)
+  COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
 
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_ising_U(:,:,:,:)
+  ! indicate the method to do global udpate
+  INTEGER, ALLOCATABLE :: global_method(:)
+
+  ! form factor of a given boson field
+  ! dimension (maxval(ndim_field),maxval(ndim_field),nfield,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat(:,:,:,:)
+
+  ! dimension (maxval(ndim_field),maxval(ndim_field),nfield,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat_U(:,:,:,:)
   
-  ! dimension (maxval(ndim_ising),nising,nflv)
-  REAL(8), ALLOCATABLE :: fmat_ising_expE(:,:,:)
+  ! dimension (maxval(ndim_field),nfield,nflv)
+  REAL(8), ALLOCATABLE :: fmat_expE(:,:,:)
 
-  ! lambda of the ising field
-  ! dimension (maxval(isingmax),nising)
+  ! lambda of the boson field
+  ! dimension (maxval(isingmax),nfield)
   COMPLEX(8), ALLOCATABLE :: lam_ising(:,:)
 
-  ! gamma of the iisng field
-  ! dimension (maxval(isingmax),nising)
+  ! gamma of the boson field
+  ! dimension (maxval(isingmax),nfield)
   COMPLEX(8), ALLOCATABLE :: gamma_ising(:,:)
 
   ! exp(lam*F) and exp(-lam*F)
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,nising,nflv)
+  ! dimension (maxval(ndim_field),maxval(ndim_field),maxval(isingmax),nfield,nflv)
   COMPLEX(8), ALLOCATABLE :: expflam_ising(:,:,:,:,:), inv_expflam_ising(:,:,:,:,:)
   
   ! exp((lam'-lam)*F)-1
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,isingmax,nising,nflv)
+  ! dimension (maxval(ndim_field),maxval(ndim_field),maxval(isingmax),maxval(isingmax),nfield,nflv)
   COMPLEX(8), ALLOCATABLE :: diff_ef_ising(:,:,:,:,:,:)
-
-
-  !--------------------------------------------------
-  ! continuous boson field parameters
-  !   exp( field * fmat(:,:) )
-  ! the free boson action is not defined here
-  !--------------------------------------------------
-
-  ! number of continuous boson fields
-  INTEGER nphi
-  
-  ! dimension for each continuous field
-  INTEGER, ALLOCATABLE :: ndim_phi(:)  ! (nphi)
-
-  ! dimension (nsite,maxval(ndim_phi),nphi)
-  INTEGER, ALLOCATABLE :: nb_phi(:,:,:) 
-
-  ! dimension (nphi)
-  LOGICAL, ALLOCATABLE :: mask_phi(:)
-
-  ! dimension (nsite,nphi)
-  LOGICAL, ALLOCATABLE :: mask_phi_site(:,:)
-
-  ! update phi by changing to phi+dphi/dphi_global
-  ! dimension (nphi)
-  COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
-
-  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:,:)
-
-  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_phi_U(:,:,:,:)
-
-  ! dimension (maxval(ndim_phi),nphi,nflv)
-  REAL(8), ALLOCATABLE :: fmat_phi_expE(:,:,:)
 
 CONTAINS
 
