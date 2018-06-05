@@ -81,6 +81,14 @@ MODULE dqmc
 
   ! the type of the boson field
   ! dimension (nfield)
+  ! type_field =  1 : HS1
+  !               2 : HS2
+  !               3 : HSgeneral
+  !              -1 : continuous HS
+  !              -2 : local phonon
+  !          others : undefined yet
+  !             100 : user-defined ising
+  !            -100 : user-defined phi
   INTEGER, ALLOCATABLE :: type_field(:)
   
   ! the number of allowed values of the boson field
