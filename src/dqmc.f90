@@ -158,10 +158,26 @@ MODULE dqmc
 
   LOGICAL meas_k, meas_r, meas_rr, meas_tau, meas_external
   
-  INTEGER nk_meas, nr_meas, nrr_meas, nt_meas
+  INTEGER nk_meas, nr_meas, nrr_meas, ntau_meas
 
   INTEGER, ALLOCATABLE :: k_array(:,:), r_array(:,:), rr_array(:,:,:)
 
+  INTEGER nph_meas, npp_meas
+
+  CHARACTER(LEN=5), ALLOCATABLE :: name_ph_meas(:), name_pp_meas(:)
+
+  INTEGER, ALLOCATABLE :: ndim_ph_meas(:), ndim_pp_meas(:)
+
+  INTEGER, ALLOCATABLE :: da_ph_meas(:), db_ph_meas(:), dc_ph_meas(:), orb_ph_meas(:)
+
+  INTEGER, ALLOCATABLE :: da_pp_meas(:), db_pp_meas(:), dc_pp_meas(:), orb_pp_meas(:)
+
+  COMPLEX(8), ALLOCATABLE :: fmat_ph_meas(:,:,:,:), fmat_pp_meas(:,:,:,:)
+
+  INTEGER ncross_ph_meas, ncross_pp_meas
+  
+  ! dimension (2,ncross_ph_meas) and (2,ncross_pp_meas)
+  INTEGER, ALLOCATABLE :: cross_ph_meas(:,:), cross_pp_meas(:,:)
 
 
   !---------------------
