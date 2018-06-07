@@ -26,6 +26,8 @@
 MODULE dqmc
 
   USE dqmc_core
+  
+  REAL(8), PARAMETER :: twopi = 2*acos(-1d0)
 
   !-------------------------------------------------
   ! fermion field parameters
@@ -70,7 +72,6 @@ MODULE dqmc
   ! kinetic Hamiltonian
   COMPLEX(8), ALLOCATABLE :: kmat(:,:,:)
 
-  
   !--------------------------------------------------
   ! boson field parameters
   !   gamma_ising * exp( lam_ising * (fmat-f0) )
@@ -156,33 +157,41 @@ MODULE dqmc
   !   PP channel two-particle Green's function <PP'(i,t)PP(j,0)>
   !-------------------------------------
 
-  LOGICAL meas_k, meas_r, meas_rr, meas_tau, meas_external
+  !LOGICAL meas_k, meas_r, meas_rr, meas_tau
   
   INTEGER nk_meas, nr_meas, nrr_meas, ntau_meas
 
   INTEGER, ALLOCATABLE :: k_array(:,:), r_array(:,:), rr_array(:,:,:)
+  COMPLEX(8), ALLOCATABLE :: expikr_array(:,:,:,:)
 
-  INTEGER nph_meas, npp_meas
+  INTEGER n_ph_meas, n_pp_meas
 
-  CHARACTER(LEN=5), ALLOCATABLE :: name_ph_meas(:), name_pp_meas(:)
+  CHARACTER(8), ALLOCATABLE :: name_ph_meas(:), name_pp_meas(:)
 
   INTEGER, ALLOCATABLE :: ndim_ph_meas(:), ndim_pp_meas(:)
 
-  INTEGER, ALLOCATABLE :: da_ph_meas(:), db_ph_meas(:), dc_ph_meas(:), orb_ph_meas(:)
+  INTEGER, ALLOCATABLE :: da_ph_meas(:,:), db_ph_meas(:,:), dc_ph_meas(:,:), orb_ph_meas(:,:), flv_ph_meas(:,:)
 
-  INTEGER, ALLOCATABLE :: da_pp_meas(:), db_pp_meas(:), dc_pp_meas(:), orb_pp_meas(:)
+  INTEGER, ALLOCATABLE :: da_pp_meas(:,:), db_pp_meas(:,:), dc_pp_meas(:,:), orb_pp_meas(:,:), flv_pp_meas(:,:)
 
-  COMPLEX(8), ALLOCATABLE :: fmat_ph_meas(:,:,:,:), fmat_pp_meas(:,:,:,:)
+  COMPLEX(8), ALLOCATABLE :: fmat_ph_meas(:,:,:), fmat_pp_meas(:,:,:)
 
   INTEGER ncross_ph_meas, ncross_pp_meas
+  
+  CHARACTER(8), ALLOCATABLE :: name_cross_ph_meas(:), name_cross_pp_meas(:)
   
   ! dimension (2,ncross_ph_meas) and (2,ncross_pp_meas)
   INTEGER, ALLOCATABLE :: cross_ph_meas(:,:), cross_pp_meas(:,:)
 
+  LOGICAL do_measure_external
 
   !---------------------
-  ! output control
+  ! other controls
   !---------------------
+
+  LOGICAL do_tmpout_external
+
+  LOGICAL do_postprocess_external
 
 
 CONTAINS
@@ -432,7 +441,7 @@ END MODULE
 SUBROUTINE generate_newfield_local(newfield,site,time,delta,ifield)
   USE dqmc
   IMPLICIT NONE
-  INTEGER ifield,d,a,b,flv,z
+  INTEGER site,time,ifield,d,a,b,flv,z
   COMPLEX(8) newfield,oldfield,delta(ndim_field(ifield),ndim_field(ifield),nflv)
   d=ndim_field(ifield)
   z=isingmax(ifield)
@@ -449,9 +458,9 @@ SUBROUTINE generate_newfield_local(newfield,site,time,delta,ifield)
       END DO
     END DO
   ELSE
-    newfield=isingflip(irand(z-1)+1,nint(oldfield))
+    newfield=isingflip(irand(z-1)+1,nint(real(oldfield)))
     DO flv=1,nflv
-      delta(1:d,1:d,flv)=diff_ef_ising(1:d,1:d,nint(newfield),nint(oldfield),ifield,flv)
+      delta(1:d,1:d,flv)=diff_ef_ising(1:d,1:d,nint(real(newfield)),nint(real(oldfield)),ifield,flv)
     END DO
   END IF
 END SUBROUTINE
@@ -461,12 +470,12 @@ SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
   USE dqmc
   IMPLICIT NONE
   INTEGER site,time,ifield,flv
-  COMPLEX(8) ratio(nflv),newfield,rtot,oldfield,gph_x2,gph_p2,f0,oldfield,diffnew,diffold
+  COMPLEX(8) ratio(nflv),newfield,rtot,oldfield,gph_x2,gph_p2,f0,diffnew,diffold
   oldfield=field(site,time,ifield)
   IF(type_field(ifield)>=1.and.type_field(ifield)<=3)THEN
     ! ising-type HS field
     ! NOTICE f0 has been absorbed into the definition of gamma_ising
-    rtot=gamma_ising(nint(newfield),ifield)/gamma_ising(nint(oldfield),ifield)
+    rtot=gamma_ising(nint(real(newfield)),ifield)/gamma_ising(nint(real(oldfield)),ifield)
     DO flv=1,nflv
       rtot=rtot*ratio(flv)
     END DO
@@ -506,6 +515,7 @@ SUBROUTINE generate_newfield_global(ifield)
   USE dqmc
   IMPLICIT NONE
   INTEGER ifield,site,time
+  COMPLEX(8) shift
   IF(global_method(ifield)==0)THEN
     CALL init_field_random(ifield)
   ELSEIF(global_method(ifield)==100)THEN
@@ -514,13 +524,13 @@ SUBROUTINE generate_newfield_global(ifield)
     IF(isingmax(ifield)==0)THEN
       ! continuous field
       IF(global_method(ifield)==1)THEN
-        DO site=1,nsite; IF(.not.mask_field_site(ifield))CYCLE
+        DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
           DO time=1,ntime
             field(site,time,ifield)=field(site,time,ifield)+drand_sym()*dphi_global(ifield)
           END DO
         END DO
       ELSEIF(global_method(ifield)==2)THEN
-        DO site=1,nsite; IF(.not.mask_field_site(ifield))CYCLE
+        DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
           shift=drand_sym()*dphi_global(ifield)
           field(site,:,ifield)=field(site,:,ifield)+shift
         END DO
@@ -547,8 +557,8 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
     rtot=1d0
     DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
       DO time=1,ntime
-        rtot=rtot*gamma_ising(nint(newfield(site,time,ifield)), ifield) &
-          & /gamma_ising(nint(field(site,time,ifield)),ifield)
+        rtot=rtot*gamma_ising(nint(real(newfield(site,time))), ifield) &
+          & /gamma_ising(nint(real(field(site,time,ifield))),ifield)
       END DO
     END DO
     DO flv=1,nflv
@@ -563,7 +573,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       DO time=1,ntime
         newphi=newfield(site,time)
         oldphi=field(site,time,ifield)
-        rtot=ratio*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi)) 
+        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi)) 
       END DO
     END DO
     DO flv=1,nflv
@@ -579,7 +589,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       DO time=1,ntime
         newphi=newfield(site,time)
         oldphi=field(site,time,ifield)
-        rtot=ratio*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi)) 
+        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi)) 
         diffnew=newphi-newfield(site,mod(time,ntime)+1)
         diffold=oldphi-field(site,mod(time,ntime)+1,ifield)
         rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2))
@@ -600,28 +610,29 @@ END SUBROUTINE
 SUBROUTINE get_expV(site,time,ifield,flv,inv,expV)
   USE dqmc
   IMPLICIT NONE
-  INTEGER site,time,ifield,flv
+  INTEGER site,time,ifield,flv,z,d,a,b
   LOGICAL inv
-  COMPLEX(8) expV(ndim_field(ifield),ndim_field(ifield))
+  COMPLEX(8) expV(ndim_field(ifield),ndim_field(ifield)),newfield
   d=ndim_field(ifield)
   z=isingmax(ifield)
+  newfield=field(site,time,ifield)
   IF(z==0)THEN
     DO a=1,d
       DO b=1,d
         IF(inv)THEN
           expV(a,b)=sum(fmat_U(a,1:d,ifield,flv)/fmat_expE(1:d,ifield,flv) &
-            & **newphi*conjg(fmat_U(b,1:d,ifield,flv)))
+            & **newfield*conjg(fmat_U(b,1:d,ifield,flv)))
         ELSE
           expV(a,b)=sum(fmat_U(a,1:d,ifield,flv)*fmat_expE(1:d,ifield,flv) &
-            & **newphi*conjg(fmat_U(b,1:d,ifield,flv)))
+            & **newfield*conjg(fmat_U(b,1:d,ifield,flv)))
         END IF
       END DO
     END DO
   ELSE
     IF(inv)THEN
-      expV=inv_expflam_ising(1:d,1:d,newising,ifield,flv)
+      expV=inv_expflam_ising(1:d,1:d,nint(real(newfield)),ifield,flv)
     ELSE
-      expV=expflam_ising(1:d,1:d,newising,ifield,flv)
+      expV=expflam_ising(1:d,1:d,nint(real(newfield)),ifield,flv)
     END IF
   END IF
 END SUBROUTINE

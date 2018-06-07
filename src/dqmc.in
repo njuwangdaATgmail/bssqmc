@@ -48,9 +48,11 @@ t   t  f   :pbca, pbcb, pbcc
 
 ! if type_field<0, read dphi, dphi_global
 
+! if type_field>=100, read isingmax
+
 ! if |type_field|>=100, user-defined
 
-! nglobal_field global_method
+! ninterval_global global_method
 
 ! ndim_field
 
@@ -64,39 +66,43 @@ t   t  f   :pbca, pbcb, pbcc
 #-----------------------
 # measurement block
 #-----------------------
-! trans_sym        ! whether translation symmetry is applied
-! meas_k, meas_r   ! control whether to measure in k or r space
-!                  ! if trans_sym=true, corr(r) is output
-!                  ! if trans_sym=false, corr(r1,r2) is output
+! nk_meas
+! k_array
 
-! k_mesh
+! nr_meas
+! r_meas
 
-! meas_tau         ! whether unequal-time Green's function is measured
-! nt_meas          ! G(t<=nt_meas) is measured
+! nrr_meas
+! rr_meas
 
-! n_pp_block  ! particle-particle channel
-! for each correlation function <Fa*Fb>
-! d_pp_block
-! suppose Fa and Fb has the same dimension and fmat
-! this is reanable, since we always measure the correlation between
-! the same physical quantity.
-! d_pp
-! fmat_pp
-! da_1, db_1, dc_1, orb_1
+! ntau_meas
+
+! n_ph_meas, max_ndim_ph_meas
+
+! for i=1,n_ph_meas
+! ndim_ph_meas(i), name_ph_meas(i)
+! da_ph_meas(i), db_ph_meas(i), dc_ph_meas(i), orb_ph_meas(i)
+! fmat_ph_meas(:,:,1,i)
 ! ...
-! da_d, db_d, dc_d, orb_d, d=d_pp
+! fmat_ph_meas(:,:,nflv,i)
 
-! n_ph_block  ! particle-particle channel
-! for each correlation function <Fa*Fb>
-! d_ph_block
-! suppose Fa and Fb has the same dimension and fmat
-! this is reanable, since we always measure the correlation between
-! the same physical quantity.
-! d_ph
-! fmat_ph
-! da_1, db_1, dc_1, orb_1
+! n_pp_meas, max_ndim_pp_meas
+
+! for i=1,n_pp_meas
+! ndim_pp_meas(i), name_pp_meas(i)
+! da_pp_meas(i), db_pp_meas(i), dc_pp_meas(i), orb_pp_meas(i)
+! fmat_pp_meas(:,:,1,i)
 ! ...
-! da_d, db_d, dc_d, orb_d, d=d_ph
+! fmat_pp_meas(:,:,nflv,i)
 
-! for boson field, we can measure <phi>, <phi^2>, <dt_phi^2>, <grad_phi^2>
-! other measurements can be added by the user
+! ncross_ph_meas
+! cross_ph_meas(1:2,i)
+
+! ncross_pp_meas
+! cross_pp_meas(1:2,i)
+
+! meas_external, n_meas_external
+
+! tmpout_external
+
+! output_external

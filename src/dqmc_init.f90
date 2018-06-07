@@ -1,12 +1,13 @@
 ! default init()
 SUBROUTINE init()
   USE dqmc
-  USE hubhol
   IMPLICIT NONE
 
-  INTEGER i,da,db,dc,orb,orb2,nhop
+  INTEGER i,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond
+  INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external
+  INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
   REAL(8) re,re2,re3
-  COMPLEX(8) ga,lam
+  COMPLEX(8) hopvalue,ga1,lam1,ga2,lam2
   
   
   OPEN(10,file='dqmc.in')
@@ -76,9 +77,9 @@ SUBROUTINE init()
 
   READ(10,*) nhop
   DO i=1,nhop
-    READ(10,*) da,db,dc,orb,orb2,re,re2
-    hop(da,db,dc,orb,orb2,:)=dcmplx(re,re2)
-    hop(-da,-db,-dc,orb2,orb,:)=dcmplx(re,-re2)
+    READ(10,*) da,db,dc,orb,orb2,hopvalue
+    hop(da,db,dc,orb,orb2,:)=hopvalue
+    hop(-da,-db,-dc,orb2,orb,:)=conjg(hopvalue)
   END DO
 
   ALLOCATE(kmat(nsite,nsite,nflv))
@@ -105,11 +106,11 @@ SUBROUTINE init()
   READ(10,*) n_g, nfield, max_ndim_field, max_isingmax
   
   ALLOCATE( type_field(nfield)                          ); type_field       = 0
-  ALLOCATE( g_field(nfield)                             ); g_field          = 0d0
+  ALLOCATE( g_field(3,nfield)                             ); g_field          = 0d0
   ALLOCATE( isingmax(nfield)                            ); isingmax         = 0
   ALLOCATE( dphi(nfield)                                ); dphi             = 0d0
   ALLOCATE( dphi_global(nfield)                         ); dphi_global      = 0d0
-  ALLOCATE( nglobal_field(nfield)                       ); nglobal_field    = 0
+  ALLOCATE( ninterval_global(nfield)                    ); ninterval_global = 0
   ALLOCATE( global_method(nfield)                       ); global_method    = 0
   ALLOCATE( ndim_field(nfield)                          ); ndim_field       = 0
   ALLOCATE( lam_ising(max_isingmax,nfield)              ); lam_ising        = 0d0
@@ -135,13 +136,13 @@ SUBROUTINE init()
       isingmax(ifield)=2
       CALL HS1(ga1,lam1,exp(-dtau*g_field(1,ifield)/2))
       lam_ising(1:2,ifield)=(/lam1,-lam1/)
-      gamma_ising(1:2,ifield)=(/ga1*exp(-lam1*g(2,ifield)),ga1*exp(lam1*g(2,ifield))/)
+      gamma_ising(1:2,ifield)=(/ga1*exp(-lam1*g_field(2,ifield)),ga1*exp(lam1*g_field(2,ifield))/)
 
     CASE(2)
 
       READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
-      isingmax(i_ising)=4
+      isingmax(ifield)=4
       CALL HS2(ga1,lam1,ga2,lam2,exp(-dtau*g_field(1,ifield)/2))
       lam_ising(1:4,ifield)=(/lam1,-lam1,lam2,-lam2/)
       gamma_ising(1:4,ifield)=(/ga1*exp(-lam1*g_field(2,ifield)),ga1*exp(lam1*g_field(2,ifield)), &
@@ -151,7 +152,7 @@ SUBROUTINE init()
       
       READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
-      isingmax(i_ising)=4
+      isingmax(ifield)=4
       CALL HSgeneral(ga1,lam1,ga2,lam2,-dtau*g_field(1,ifield)/2)
       lam_ising(1:4,ifield)=(/lam1,-lam1,lam2,-lam2/)
       gamma_ising(1:4,ifield)=(/ga1*exp(-lam1*g_field(2,ifield)),ga1*exp(lam1*g_field(2,ifield)), &
@@ -173,11 +174,11 @@ SUBROUTINE init()
     CASE(100:)
       
       READ(10,*) isingmax(ifield)
-      CALL set_field_external(type_field(ifield),ifield)
+      CALL set_field_external(ifield)
 
     CASE(:-100)
       READ(10,*) dphi(ifield), dphi_global(ifield)
-      CALL set_field_external(type_field(ifield),ifield)
+      CALL set_field_external(ifield)
 
     CASE default
 
@@ -187,7 +188,7 @@ SUBROUTINE init()
     END SELECT
 
     !
-    READ(10,*) nglobal_field(ifield),global_method(ifield)
+    READ(10,*) ninterval_global(ifield),global_method(ifield)
 
     !
     READ(10,*) ndim_field(ifield)
@@ -226,24 +227,24 @@ SUBROUTINE init()
 
     ! make n_checkerboard-1 copies of ifield
     DO i=1,n_checkerboard-1
-      type_field(ifield+i)    = type_field(ifield)
-      g_field(:,ifield+i)     = g_field(:,ifield)
-      isingmax(ifield+i)      = isingmax(ifield)
-      dphi(ifield+i)          = dphi(ifield)
-      dphi_global(ifield+i)   = dphi_global(ifield)
-      nglobal_field(ifield+i) = nglobal_field(ifield)
-      global_method(ifield+i) = global_method(ifield)
-      ndim_field(ifield+i)    = ndim_field(ifield)
-      lam_ising(:,ifield+i)   = lam_ising(:,ifield)
-      gamma_ising(:,ifield+i) = gamma_ising(:,ifield)
-      fmat(:,:,ifield+i,:)    = fmat(:,:,ifield,:)
-      nb_field(:,:,ifield+i)  = nb_field(:,:,ifield)
+      type_field(ifield+i)      = type_field(ifield)
+      g_field(:,ifield+i)       = g_field(:,ifield)
+      isingmax(ifield+i)        = isingmax(ifield)
+      dphi(ifield+i)            = dphi(ifield)
+      dphi_global(ifield+i)     = dphi_global(ifield)
+      ninterval_global(ifield+i)= ninterval_global(ifield)
+      global_method(ifield+i)   = global_method(ifield)
+      ndim_field(ifield+i)      = ndim_field(ifield)
+      lam_ising(:,ifield+i)     = lam_ising(:,ifield)
+      gamma_ising(:,ifield+i)   = gamma_ising(:,ifield)
+      fmat(:,:,ifield+i,:)      = fmat(:,:,ifield,:)
+      nb_field(:,:,ifield+i)    = nb_field(:,:,ifield)
     END DO
 
     ! the only difference between these n_checkerboard boson fields is mask_field_site
     DO i=1,n_checkerboard
-      READ(10,*) ntmp   ! how many conditions to define this HS field
-      DO k=1,ntmp
+      READ(10,*) n_cond   ! how many conditions to define this HS field
+      DO k=1,n_cond
         READ(10,*) ma,moda,mb,modb,mc,modc,orb
         DO a=1,La; DO b=1,Lb; DO c=1,Lc
           IF(mod(a,ma)==moda.and.mod(b,mb)==modb.and.mod(c,mc)==modc)THEN
@@ -262,8 +263,114 @@ SUBROUTINE init()
   !--------------------------------
   ! read in measurement parameters
   !--------------------------------
+
+  ! set k_array
+  ! it can be set automatically, e.g. full-BZ-mesh, along a cut, as a todo
+  READ(10,*) nk_meas
+  IF(nk_meas>0) ALLOCATE(k_array(3,nk_meas),expikr_array(0:La-1,0:Lb-1,0:Lc-1,nk_meas))
+  DO i=1,nk_meas
+    READ(10,*) k_array(:,i)
+    DO da=0,La-1; DO db=0,Lb-1; DO dc=0,Lc-1
+      expikr_array(da,db,dc,i)=exp(dcmplx(0d0,twopi*(k_array(1,i)*da*1d0/La &
+        & +k_array(2,i)*db*1d0/Lb+k_array(3,i)*dc*1d0/Lc)))
+    END DO; END DO; END DO
+  END DO
+
+
+  ! set r_array
+  READ(10,*) nr_meas
+  IF(nr_meas>0) ALLOCATE(r_array(3,nr_meas))
+  DO i=1,nr_meas
+    READ(10,*) r_array(:,i)
+  END DO
+
+  ! set rr_array
+  READ(10,*) nrr_meas
+  IF(nrr_meas>0) ALLOCATE(rr_array(3,2,nrr_meas))
+  DO i=1,nrr_meas
+    READ(10,*) rr_array(:,1,nrr_meas),rr_array(:,2,nrr_meas)
+  END DO
+
+  READ(10,*) ntau_meas
+  IF(proj.and.ntau_meas>ntime/2-nsp)THEN
+    ntau_meas=ntime/2-nsp
+    IF(id==0) PRINT*, 'ntau_meas is reset to', ntau_meas
+  ELSEIF(.not.proj.and.ntau_meas>ntime/2)THEN
+    ntau_meas=ntime/2
+    IF(id==0) PRINT*, 'ntau_meas is reset to', ntau_meas
+  END IF
   
-  CALL set_pool(nbin,0,100)
+  !
+  READ(10,*) n_ph_meas, max_ndim_ph_meas
+  ALLOCATE(ndim_ph_meas(n_ph_meas),name_ph_meas(n_ph_meas))
+  ALLOCATE(da_ph_meas(max_ndim_ph_meas,n_ph_meas))
+  ALLOCATE(db_ph_meas(max_ndim_ph_meas,n_ph_meas))
+  ALLOCATE(dc_ph_meas(max_ndim_ph_meas,n_ph_meas))
+  ALLOCATE(orb_ph_meas(max_ndim_ph_meas,n_ph_meas))
+  ALLOCATE(flv_ph_meas(max_ndim_ph_meas,n_ph_meas))
+  ALLOCATE(fmat_ph_meas(max_ndim_ph_meas,max_ndim_ph_meas,n_ph_meas))
+
+  !
+  DO i=1,n_ph_meas
+    READ(10,*) ndim_ph_meas(i), name_ph_meas(i)
+    DO k=1,ndim_ph_meas(i)
+      READ(10,*) da_ph_meas(k,i), db_ph_meas(k,i), dc_ph_meas(k,i), orb_ph_meas(k,i), flv_ph_meas(k,i)
+    END DO
+    DO flv=1,nflv
+      DO k=1,ndim_ph_meas(i)
+        READ(10,*) fmat_ph_meas(k,1:ndim_ph_meas(i),i)
+      END DO
+    END DO
+  END DO
+
+  !
+  READ(10,*) n_pp_meas, max_ndim_pp_meas
+  ALLOCATE(ndim_pp_meas(n_pp_meas),name_pp_meas(n_pp_meas))
+  ALLOCATE(da_pp_meas(max_ndim_pp_meas,n_pp_meas))
+  ALLOCATE(db_pp_meas(max_ndim_pp_meas,n_pp_meas))
+  ALLOCATE(dc_pp_meas(max_ndim_pp_meas,n_pp_meas))
+  ALLOCATE(orb_pp_meas(max_ndim_pp_meas,n_pp_meas))
+  ALLOCATE(flv_pp_meas(max_ndim_pp_meas,n_pp_meas))
+  ALLOCATE(fmat_pp_meas(max_ndim_pp_meas,max_ndim_pp_meas,n_pp_meas))
+
+  !
+  DO i=1,n_pp_meas
+    READ(10,*) ndim_pp_meas(i), name_pp_meas(i)
+    DO k=1,ndim_pp_meas(i)
+      READ(10,*) da_pp_meas(k,i), db_pp_meas(k,i), dc_pp_meas(k,i), orb_pp_meas(k,i), flv_pp_meas(k,i)
+    END DO
+    DO flv=1,nflv
+      DO k=1,ndim_pp_meas(i)
+        READ(10,*) fmat_pp_meas(k,1:ndim_pp_meas(i),i)
+      END DO
+    END DO
+  END DO
+
+  !
+  READ(10,*) ncross_ph_meas
+  ALLOCATE(cross_ph_meas(2,ncross_ph_meas))
+  DO i=1,ncross_ph_meas
+    READ(10,*) name_cross_ph_meas(i)
+    READ(10,*) cross_ph_meas(:,i)
+  END DO
+
+  !
+  READ(10,*) ncross_pp_meas
+  ALLOCATE(cross_pp_meas(2,ncross_pp_meas))
+  DO i=1,ncross_pp_meas
+    READ(10,*) name_cross_pp_meas(i)
+    READ(10,*) cross_pp_meas(:,i)
+  END DO
+
+  
+  READ(10,*) do_measure_external, n_meas_external
+  READ(10,*) do_tmpout_external
+  READ(10,*) do_postprocess_external
+  
+  pool_size=2+(nk_meas+nr_meas+nrr_meas)*(2*ntau_meas+1) &
+    & *(norb*norb*nflv+n_ph_meas+n_pp_meas+ncross_ph_meas+ncross_pp_meas) &
+    & +n_meas_external
+  CALL set_pool(nbin,0,pool_size)
 
   CLOSE(10)
 
@@ -286,10 +393,3 @@ SUBROUTINE print_input()
   WRITE(10,*) 'This is a place to print input parameters...'
   CLOSE(10)
 END SUBROUTINE
-
-  !--------------------------------------------------------------
-  ALLOCATE(gph_x2(nphi),gph_p2(nphi))
-  gph_x2=1d0/2/Vph/dtau
-  gph_p2=1d0/2/Vph/dtau**3/debye**2
-
-
