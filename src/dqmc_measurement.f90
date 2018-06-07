@@ -2,10 +2,11 @@ SUBROUTINE measurement(time)
   USE dqmc
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: time
-  INTEGER i,j,k,orb,flv,a,b,c,aa,bb,cc,a1,b1,c1,a2,b2,c2,a3,b3,c3,a4,b4,c4,da,db,dc
-  INTEGER i1,i2,i3,i4,k1,k2,k3,k4,flv1,flv2,flv3,flv4,orb1,orb2,orb3,orb4,d,ir
+  INTEGER i,j,k,orb,flv,a,b,c,aa,bb,cc,da,db,dc,d,ir
+  INTEGER a1,a2,a3,a4,b1,b2,b3,b4,c1,c2,c3,c4
+  INTEGER i1,i2,i3,i4,k1,k2,k3,k4,flv1,flv2,flv3,flv4,orb1,orb2,orb3,orb4
   COMPLEX(8) kinetic,factor,g2(nsite,nsite,nflv), g3(nsite,nsite,nflv)
-  COMPLEX(8), ALLOCATABLE :: mat4(:,:,:,:),obk(:),obr(:),obrr(:)
+  COMPLEX(8), ALLOCATABLE :: ob4(:,:,:,:),obk(:),obr(:),obrr(:)
   
   ! get g2(i,j)=<c(i)c'(j)> and g3(i,j)=<c'(j)c(i)> in 2nd-order Trotter approximation
   ! NOTICE the positions of i and j. 
@@ -27,12 +28,15 @@ SUBROUTINE measurement(time)
   END DO
   CALL put_pool(kinetic)
 
+  !-------------------------------------
   ! single-particle Green's functions
+  !-------------------------------------
   
-  IF(nk_meas>0)THEN  ! PBC is assumed
+  ! G(k)
+  IF(nk_meas>0)THEN
 
-    ALLOCATE(mat4(nk_meas,norb,norb,nflv))
-    mat4=0d0
+    ALLOCATE(ob4(nk_meas,norb,norb,nflv))
+    ob4=0d0
     DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(a,b,c,orb)
       DO da=0,La-1; a2=a+da; IF(a2>La) a2=a2-La
         DO db=0,Lb-1; b2=b+db; IF(b2>Lb) b2=b2-Lb
@@ -40,7 +44,7 @@ SUBROUTINE measurement(time)
             DO orb2=1,norb; i2=label(a2,b2,c2,orb2)
  
               DO k=1,nk_meas
-                mat4(k,orb,orb2,:)=mat4(k,orb,orb2,:)+g2(i,i2,:)*expikr_array(da,db,dc,k)
+                ob4(k,orb,orb2,:)=ob4(k,orb,orb2,:)+g2(i,i2,:)*expikr_array(da,db,dc,k)
               END DO
  
             END DO
@@ -48,16 +52,17 @@ SUBROUTINE measurement(time)
         END DO
       END DO
     END DO; END DO; END DO; END DO
-    mat4=mat4*currentphase/(La*Lb*Lc)**2
-    CALL zput_array(nk_meas*norb*norb*nflv,mat4)
-    DEALLOCATE(mat4)
+    ob4=ob4*currentphase/(La*Lb*Lc)**2
+    CALL zput_array(nk_meas*norb*norb*nflv,ob4)
+    DEALLOCATE(ob4)
 
   END IF
 
+  ! G(r)=G(x,x+r)
   IF(nr_meas>0)THEN
 
-    ALLOCATE(mat4(nr_meas,norb,norb,nflv))
-    mat4=0d0
+    ALLOCATE(ob4(nr_meas,norb,norb,nflv))
+    ob4=0d0
     DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(a,b,c,orb)
       DO k=1,nr_meas
         a2=a+r_array(1,k); IF(a2>La) a2=a2-La
@@ -65,40 +70,42 @@ SUBROUTINE measurement(time)
         c2=c+r_array(3,k); IF(c2>Lc) c2=c2-Lc
         DO orb2=1,norb; i2=label(a2,b2,c2,orb2)
 
-          mat4(k,orb,orb2,:)=mat4(k,orb,orb2,:)+g2(i,i2,:)
+          ob4(k,orb,orb2,:)=ob4(k,orb,orb2,:)+g2(i,i2,:)
 
         END DO
       END DO
     END DO; END DO; END DO; END DO
-    mat4=mat4*currentphase/(La*Lb*Lc)
-    CALL zput_array(nr_meas*norb*norb*nflv,mat4)
-    DEALLOCATE(mat4)
+    ob4=ob4*currentphase/(La*Lb*Lc)
+    CALL zput_array(nr_meas*norb*norb*nflv,ob4)
+    DEALLOCATE(ob4)
     
   END IF
 
+  ! G(r1,r2)
   IF(nrr_meas>0)THEN
     
-    ALLOCATE(mat4(nrr_meas,norb,norb,nflv))
+    ALLOCATE(ob4(nrr_meas,norb,norb,nflv))
     DO orb=1,norb
       DO orb2=1,norb
         DO k=1,nrr_meas
           i=label(rr_array(1,1,k),rr_array(2,1,k),rr_array(3,1,k),orb)
           i2=label(rr_array(1,2,k),rr_array(2,2,k),rr_array(3,2,k),orb2)
           
-          mat4(k,orb,orb2,:)=mat4(k,orb,orb2,:)+g2(i,i2,:)
+          ob4(k,orb,orb2,:)=ob4(k,orb,orb2,:)+g2(i,i2,:)
 
         END DO
       END DO
     END DO
-    mat4=mat4*currentphase
-    CALL zput_array(nrr_meas*norb*norb*nflv,mat4)
-    DEALLOCATE(mat4)
+    ob4=ob4*currentphase
+    CALL zput_array(nrr_meas*norb*norb*nflv,ob4)
+    DEALLOCATE(ob4)
 
   END IF
 
   !--------------------------------------------
   ! PH-channel two-particle Green's functions
   !--------------------------------------------
+
   DO k=1,n_ph_meas; d=ndim_ph_meas(k)
 
     IF(nk_meas>0)THEN
@@ -495,8 +502,47 @@ SUBROUTINE measurement(time)
   END DO
 
 
+  !---------------------------------
   ! unequal-time Green's functions
-  ! to be added
+  !---------------------------------
+
+  IF(proj)THEN
+
+    DO p=1,ntau_meas  ! evolve to the left and right, respectively
+
+      IF(nk_meas>0)THEN
+        ...
+      END IF
+
+      IF(nr_meas>0)THEN
+        ...
+      END IF
+
+      IF(nrr_meas>0)THEN
+        ...
+      END IF
+
+    END DO
+
+  ELSE
+
+     DO p=1,ntau_meas  ! evolve to the left and right, respectively
+
+      IF(nk_meas>0)THEN
+        ...
+      END IF
+
+      IF(nr_meas>0)THEN
+        ...
+      END IF
+
+      IF(nrr_meas>0)THEN
+        ...
+      END IF
+
+    END DO
+
+  END IF
 
   ! measurement externally
   IF(do_measure_external) CALL measurement_external(time)
