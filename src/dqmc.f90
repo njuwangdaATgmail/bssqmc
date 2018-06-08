@@ -1,6 +1,6 @@
 !---------------------------------------------------------------------------
-! This is a wrapper of the dqmc_core. It defines a 3D (1-2D are special cases) 
-! fermionic lattice coupling to boson fields. The boson fields can be either 
+! This is a wrapper of the dqmc_core. It defines a 3D (1-2D are special cases)
+! fermionic lattice coupling to boson fields. The boson fields can be either
 ! descrete (called ising) or continuous (called phi).
 !
 ! NOTICE: In this module, uniform fermion-fermion and fermion-boson
@@ -11,11 +11,11 @@
 ! to be added...
 !---------------------------------------------------------------------------
 ! Todo:
-! + aobut initialization: realize a general UVJ-phonon-phi4 model and 
+! + aobut initialization: realize a general UVJ-phonon-phi4 model and
 !   provide relevant subroutines to realize any new boson fields.
 ! + about measurement: all measurements are correlation functions
 !   (1) single-particle:  [(x1,y1,z1,orb1), (x2,y2,z2,orb2)]
-!   (2) two-particle:     [(x1,y1,z1,orb1), (x1+dx,y1+dy,z1+dz,orb1')] --> 
+!   (2) two-particle:     [(x1,y1,z1,orb1), (x1+dx,y1+dy,z1+dz,orb1')] -->
 !       (both PP and PH)  [(x2,y2,z2,orb2), (x2+dx,y2+dy,z2+dz,orb2')]
 !                         with form factor fmat_meas(:,:)
 !      so the user only need provide the form factor and its subspace
@@ -26,7 +26,7 @@
 MODULE dqmc
 
   USE dqmc_core
-  
+
   REAL(8), PARAMETER :: twopi = 2*acos(-1d0)
 
   !-------------------------------------------------
@@ -38,7 +38,7 @@ MODULE dqmc
 
   ! lattice size
   INTEGER La, Lb, Lc
-  
+
   ! number of orbitals
   INTEGER norb
 
@@ -100,13 +100,13 @@ MODULE dqmc
   ! dimension (3,nfield)
   ! in all default models, at most 3 parameters are enough to describe the boson field
   REAL(8), ALLOCATABLE :: g_field(:,:)
-  
+
   ! the number of allowed values of the boson field
   ! if isingmax=0, it corresponds to a continuous field
   ! dimension (nfield)
   INTEGER, ALLOCATABLE :: isingmax(:)
 
-  ! local update of ising-type field: 
+  ! local update of ising-type field:
   !   flip of the ising field to a new value
   ! for continuous field, it's useless
   ! dimension (maxval(isingmax)-1,maxval(isingmax))
@@ -127,7 +127,7 @@ MODULE dqmc
 
   ! dimension (maxval(ndim_field),maxval(ndim_field),nfield,nflv)
   COMPLEX(8), ALLOCATABLE :: fmat_U(:,:,:,:)
-  
+
   ! dimension (maxval(ndim_field),nfield,nflv)
   REAL(8), ALLOCATABLE :: fmat_expE(:,:,:)
 
@@ -143,7 +143,7 @@ MODULE dqmc
   ! only used for ising-type field
   ! dimension (maxval(ndim_field),maxval(ndim_field),maxval(isingmax),nfield,nflv)
   COMPLEX(8), ALLOCATABLE :: expflam_ising(:,:,:,:,:), inv_expflam_ising(:,:,:,:,:)
-  
+
   ! exp((lam'-lam)*F)-1
   ! only used for ising-type field
   ! dimension (maxval(ndim_field),maxval(ndim_field),maxval(isingmax),maxval(isingmax),nfield,nflv)
@@ -158,11 +158,11 @@ MODULE dqmc
   !-------------------------------------
 
   !LOGICAL meas_k, meas_r, meas_rr, meas_tau
-  
+
   INTEGER nk_meas, nr_meas, nrr_meas, ntau_meas
 
   INTEGER, ALLOCATABLE :: k_array(:,:), r_array(:,:), rr_array(:,:,:)
-  
+
   COMPLEX(8), ALLOCATABLE :: expikr_array(:,:,:,:)
 
   INTEGER n_ph_meas, n_pp_meas
@@ -172,24 +172,24 @@ MODULE dqmc
   INTEGER, ALLOCATABLE :: ndim_ph_meas(:), ndim_pp_meas(:)
 
   INTEGER, ALLOCATABLE :: flv_ph_meas(:,:)
-  
+
   INTEGER, ALLOCATABLE :: nb_ph_meas(:,:,:,:,:)  !(La,Lb,Lc,maxval(ndim_ph_meas),n_ph_meas)
 
   INTEGER, ALLOCATABLE :: flv_pp_meas(:,:)
 
   INTEGER, ALLOCATABLE :: nb_pp_meas(:,:,:,:,:)  !(La,Lb,Lc,maxval(ndim_pp_meas),n_pp_meas)
-  
+
   COMPLEX(8), ALLOCATABLE :: fmat_ph_meas(:,:,:), fmat_pp_meas(:,:,:)
 
   INTEGER ncross_ph_meas, ncross_pp_meas
-  
+
   CHARACTER(8), ALLOCATABLE :: name_cross_ph_meas(:), name_cross_pp_meas(:)
-  
+
   ! dimension (2,ncross_ph_meas) and (2,ncross_pp_meas)
   INTEGER, ALLOCATABLE :: cross_ph_meas(:,:), cross_pp_meas(:,:)
 
   LOGICAL FAtech
-  
+
   LOGICAL do_measure_external
 
   !---------------------
@@ -220,7 +220,7 @@ CONTAINS
     COMPLEX(8) boundary
 
     IF(.not.allocated(kmat)) ALLOCATE(kmat(La*Lb*Lc*norb,La*Lb*Lc*norb,nflv))
-    
+
     kmat=0d0
 
     DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(a,b,c,orb)
@@ -294,7 +294,7 @@ CONTAINS
     END DO; END DO; END DO; END DO
 
   END SUBROUTINE set_kmat
-  
+
   ! set exp(K)=exp(-dtau*H0)
   ! NOTICE: before calling this subroutine, kmat must be generated
   !         after this subroutine, kmat is changed and must be set again
@@ -380,15 +380,15 @@ CONTAINS
       END DO
     END DO
   END SUBROUTINE
-  
+
   !
   SUBROUTINE set_expf()
     IMPLICIT NONE
     INTEGER ifield,d,z,a,b,s,s2,flv
-    
+
     d=maxval(ndim_field)
     z=maxval(isingmax)
-    
+
     ! allocate fmat_U and fmat_expE
     IF(.not.allocated(fmat_U)) ALLOCATE(fmat_U(d,d,nfield,nflv))
     IF(.not.allocated(fmat_expE)) ALLOCATE(fmat_expE(d,nfield,nflv))
@@ -399,9 +399,9 @@ CONTAINS
       IF(.not.allocated(inv_expflam_ising)) ALLOCATE(inv_expflam_ising(d,d,z,nfield,nflv))
       IF(.not.allocated(diff_ef_ising)) ALLOCATE(diff_ef_ising(d,d,z,z,nfield,nflv))
     END IF
-    
+
     DO ifield=1,nfield
-      
+
       d=ndim_field(ifield)
       z=isingmax(ifield)
 
@@ -411,20 +411,20 @@ CONTAINS
         fmat_U(1:d,1:d,ifield,flv)=fmat_U(1:d,1:d,ifield,flv)
         CALL eigen(d,fmat_U(1:d,1:d,ifield,flv),fmat_expE(1:d,ifield,flv))
         fmat_expE(1:d,ifield,flv)=exp(fmat_expE(1:d,ifield,flv))
-        
-        
+
+
         ! set expf(lam*fmat) and expf(-lam*fmat)
         DO s=1,z
           DO a=1,d
             DO b=1,d
               expflam_ising(a,b,s,ifield,flv)=sum(fmat_U(a,1:d,ifield,flv) &
-                & *fmat_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_U(b,1:d,ifield,flv)))    
+                & *fmat_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_U(b,1:d,ifield,flv)))
               inv_expflam_ising(a,b,s,ifield,flv)=sum(fmat_U(a,1:d,ifield,flv) &
-                & /fmat_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_U(b,1:d,ifield,flv)))    
+                & /fmat_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_U(b,1:d,ifield,flv)))
             END DO
           END DO
         END DO
-        
+
         ! set expf((lam'-lam)*fmat)-1
         DO s=1,z
           DO s2=1,z
@@ -499,7 +499,7 @@ SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
     gph_x2=0.5d0/g_field(1,ifield)/dtau
     gph_p2=0.5d0/g_field(1,ifield)/dtau**3/g_field(3,ifield)**2
     f0=g_field(2,ifield)
-    rtot=exp(-gph_x2*(newfield**2-oldfield**2)-f0*(newfield-oldfield)) 
+    rtot=exp(-gph_x2*(newfield**2-oldfield**2)-f0*(newfield-oldfield))
     diffnew=newfield-field(site,mod(time,ntime)+1,ifield)
     diffold=oldfield-field(site,mod(time,ntime)+1,ifield)
     rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2)) ! kinetic energy on (time,time+1)
@@ -580,7 +580,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       DO time=1,ntime
         newphi=newfield(site,time)
         oldphi=field(site,time,ifield)
-        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi)) 
+        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi))
       END DO
     END DO
     DO flv=1,nflv
@@ -596,7 +596,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       DO time=1,ntime
         newphi=newfield(site,time)
         oldphi=field(site,time,ifield)
-        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi)) 
+        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi))
         diffnew=newphi-newfield(site,mod(time,ntime)+1)
         diffold=oldphi-field(site,mod(time,ntime)+1,ifield)
         rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2))

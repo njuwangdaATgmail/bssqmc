@@ -8,20 +8,20 @@ SUBROUTINE init()
   INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
   REAL(8) re,re2,re3
   COMPLEX(8) hopvalue,ga1,lam1,ga2,lam2
-  
-  
+
+
   OPEN(10,file='dqmc.in')
 
   !--------------------------------
   ! read in MC control parameters
   !--------------------------------
-  
+
   READ(10,*) restart
   READ(10,*) proj
   READ(10,*) nflv
   READ(10,*) beta
   READ(10,*) dtau
-  
+
   ntime=ceiling(beta/dtau)
   !IF(mod(ntime,2)==1) ntime=ntime+1
   !IF(ntime<2) ntime=2
@@ -50,11 +50,11 @@ SUBROUTINE init()
     CALL init_rng(randomseed)
   END IF
   READ(10,*) newMetro
-  
+
   !--------------------------------
   ! read in fermion lattice parameters
   !--------------------------------
-  
+
   READ(10,*) norb
   READ(10,*) La,Lb,Lc; nsite=La*Lb*Lc*norb
   READ(10,*) nelec
@@ -99,12 +99,12 @@ SUBROUTINE init()
   !--------------------------------
   ! read in boson field parameters
   !--------------------------------
-  
-  ! In fact, these variables are not necessary. The program should be 
+
+  ! In fact, these variables are not necessary. The program should be
   ! able to get them from the following settings. Right now, they are
-  ! read from file directly for simplicity. 
+  ! read from file directly for simplicity.
   READ(10,*) n_g, nfield, max_ndim_field, max_isingmax
-  
+
   ALLOCATE( type_field(nfield)                          ); type_field       = 0
   ALLOCATE( g_field(3,nfield)                             ); g_field          = 0d0
   ALLOCATE( isingmax(nfield)                            ); isingmax         = 0
@@ -119,13 +119,13 @@ SUBROUTINE init()
   ALLOCATE( nb_field(nsite,max_ndim_field,nfield)       ); nb_field         = 0
   ALLOCATE( mask_field_site(nsite,nfield)               ); mask_field_site  = .false.
   ALLOCATE( mask_field(nfield)                          ); mask_field       = .false.
-  
+
   ifield=0
 
   DO i_g=1,n_g
 
     ifield=ifield+1
-    
+
     READ(10,*) type_field(ifield), n_checkerboard
 
     SELECT CASE(type_field(ifield))
@@ -149,7 +149,7 @@ SUBROUTINE init()
         &                       ga2*exp(-lam2*g_field(2,ifield)),ga2*exp(lam2*g_field(2,ifield))/)
 
     CASE(3)
-      
+
       READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
       isingmax(ifield)=4
@@ -157,7 +157,7 @@ SUBROUTINE init()
       lam_ising(1:4,ifield)=(/lam1,-lam1,lam2,-lam2/)
       gamma_ising(1:4,ifield)=(/ga1*exp(-lam1*g_field(2,ifield)),ga1*exp(lam1*g_field(2,ifield)), &
         &                       ga2*exp(-lam2*g_field(2,ifield)),ga2*exp(lam2*g_field(2,ifield))/)
-    
+
     CASE(-1)
 
       READ(10,*) g_field(1:2,ifield)
@@ -172,7 +172,7 @@ SUBROUTINE init()
       READ(10,*) dphi(ifield), dphi_global(ifield)
 
     CASE(100:)
-      
+
       READ(10,*) isingmax(ifield)
       CALL set_field_external(ifield)
 
@@ -192,7 +192,7 @@ SUBROUTINE init()
 
     !
     READ(10,*) ndim_field(ifield)
-  
+
     ! read in fmat
     DO flv=1,nflv
       DO k=1,ndim_field(ifield)
@@ -212,7 +212,7 @@ SUBROUTINE init()
         IF(b2>Lb.and.(.not.pbcb)) CYCLE
         IF(c2<1 .and.(.not.pbcc)) CYCLE
         IF(c2>Lc.and.(.not.pbcc)) CYCLE
-      
+
         IF(a2<1 .and.pbca) a2=a2+La
         IF(a2>La.and.pbca) a2=a2-La
         IF(b2<1 .and.pbcb) b2=b2+Lb
@@ -257,7 +257,7 @@ SUBROUTINE init()
     ifield=ifield+n_checkerboard-1
 
   END DO
-  
+
   CALL set_expf()
 
   !--------------------------------
@@ -299,7 +299,7 @@ SUBROUTINE init()
     ntau_meas=ntime/2
     IF(id==0) PRINT*, 'ntau_meas is reset to', ntau_meas
   END IF
-  
+
   !
   READ(10,*) n_ph_meas, max_ndim_ph_meas
   ALLOCATE(ndim_ph_meas(n_ph_meas),name_ph_meas(n_ph_meas))
@@ -373,7 +373,7 @@ SUBROUTINE init()
   READ(10,*) do_measure_external, n_meas_external
   READ(10,*) do_tmpout_external
   READ(10,*) do_postprocess_external
-  
+
   pool_size=2+(nk_meas+nr_meas+nrr_meas)*(2*ntau_meas+1) &
     & *(norb*norb*nflv+n_ph_meas+n_pp_meas+ncross_ph_meas+ncross_pp_meas) &
     & +n_meas_external
