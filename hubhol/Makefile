@@ -17,20 +17,20 @@ clean:
 	rm *.o *.mod
 #==========================================================
 # generate every obj and module files
-mod_matrixlib.o: ../src/mod_matrixlib.f90
-	$(F90) $(FCOPTS) -c ../src/mod_matrixlib.f90
+mod_matrixlib.o: mod_matrixlib.f90
+	$(F90) $(FCOPTS) -c mod_matrixlib.f90
 
-mod_randomlib.o: ../src/mod_randomlib.f90
-	$(F90) $(FCOPTS) -c ../src/mod_randomlib.f90
+mod_randomlib.o: mod_randomlib.f90
+	$(F90) $(FCOPTS) -c mod_randomlib.f90
 
-mod_measpool.o: ../src/mod_measpool.f90
-	$(F90) $(FCOPTS) -c ../src/mod_measpool.f90
+mod_measpool.o: mod_measpool.f90
+	$(F90) $(FCOPTS) -c mod_measpool.f90
 
-mod_dqmc_core.o: ../src/mod_dqmc_core.f90 mod_matrixlib.o mod_randomlib.o mod_measpool.o
-	$(F90) $(FCOPTS) -c ../src/mod_dqmc_core.f90
+mod_dqmc_core.o: mod_dqmc_core.f90 mod_matrixlib.o mod_randomlib.o mod_measpool.o
+	$(F90) $(FCOPTS) -c mod_dqmc_core.f90
 
-dqmc.o: ../src/dqmc.f90 mod_dqmc_core.o
-	$(F90) $(FCOPTS) -c ../src/dqmc.f90
+dqmc.o: dqmc.f90 mod_dqmc_core.o
+	$(F90) $(FCOPTS) -c dqmc.f90
 
 hubhol.o: hubhol.f90 dqmc.o
 	$(F90) $(FCOPTS) -c hubhol.f90
