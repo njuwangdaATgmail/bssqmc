@@ -162,6 +162,7 @@ MODULE dqmc
   INTEGER nk_meas, nr_meas, nrr_meas, ntau_meas
 
   INTEGER, ALLOCATABLE :: k_array(:,:), r_array(:,:), rr_array(:,:,:)
+  
   COMPLEX(8), ALLOCATABLE :: expikr_array(:,:,:,:)
 
   INTEGER n_ph_meas, n_pp_meas
@@ -170,10 +171,14 @@ MODULE dqmc
 
   INTEGER, ALLOCATABLE :: ndim_ph_meas(:), ndim_pp_meas(:)
 
-  INTEGER, ALLOCATABLE :: da_ph_meas(:,:), db_ph_meas(:,:), dc_ph_meas(:,:), orb_ph_meas(:,:), flv_ph_meas(:,:)
+  INTEGER, ALLOCATABLE :: flv_ph_meas(:,:)
+  
+  INTEGER, ALLOCATABLE :: nb_ph_meas(:,:,:,:,:)  !(La,Lb,Lc,maxval(ndim_ph_meas),n_ph_meas)
 
-  INTEGER, ALLOCATABLE :: da_pp_meas(:,:), db_pp_meas(:,:), dc_pp_meas(:,:), orb_pp_meas(:,:), flv_pp_meas(:,:)
+  INTEGER, ALLOCATABLE :: flv_pp_meas(:,:)
 
+  INTEGER, ALLOCATABLE :: nb_pp_meas(:,:,:,:,:)  !(La,Lb,Lc,maxval(ndim_pp_meas),n_pp_meas)
+  
   COMPLEX(8), ALLOCATABLE :: fmat_ph_meas(:,:,:), fmat_pp_meas(:,:,:)
 
   INTEGER ncross_ph_meas, ncross_pp_meas

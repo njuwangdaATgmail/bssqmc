@@ -267,11 +267,11 @@ SUBROUTINE init()
   ! set k_array
   ! it can be set automatically, e.g. full-BZ-mesh, along a cut, as a todo
   READ(10,*) nk_meas
-  IF(nk_meas>0) ALLOCATE(k_array(3,nk_meas),expikr_array(0:La-1,0:Lb-1,0:Lc-1,nk_meas))
+  IF(nk_meas>0) ALLOCATE(k_array(3,nk_meas),expikr_array(nk_meas,1-La:La-1,1-Lb:Lb-1,1-Lc:Lc-1))
   DO i=1,nk_meas
     READ(10,*) k_array(:,i)
-    DO da=0,La-1; DO db=0,Lb-1; DO dc=0,Lc-1
-      expikr_array(da,db,dc,i)=exp(dcmplx(0d0,twopi*(k_array(1,i)*da*1d0/La &
+    DO da=1-La,La-1; DO db=1-Lb,Lb-1; DO dc=1-Lc,Lc-1
+      expikr_array(i,da,db,dc)=exp(dcmplx(0d0,twopi*(k_array(1,i)*da*1d0/La &
         & +k_array(2,i)*db*1d0/Lb+k_array(3,i)*dc*1d0/Lc)))
     END DO; END DO; END DO
   END DO
@@ -303,10 +303,7 @@ SUBROUTINE init()
   !
   READ(10,*) n_ph_meas, max_ndim_ph_meas
   ALLOCATE(ndim_ph_meas(n_ph_meas),name_ph_meas(n_ph_meas))
-  ALLOCATE(da_ph_meas(max_ndim_ph_meas,n_ph_meas))
-  ALLOCATE(db_ph_meas(max_ndim_ph_meas,n_ph_meas))
-  ALLOCATE(dc_ph_meas(max_ndim_ph_meas,n_ph_meas))
-  ALLOCATE(orb_ph_meas(max_ndim_ph_meas,n_ph_meas))
+  ALLOCATE(nb_ph_meas(La,Lb,Lc,max_ndim_ph_meas,n_ph_meas))
   ALLOCATE(flv_ph_meas(max_ndim_ph_meas,n_ph_meas))
   ALLOCATE(fmat_ph_meas(max_ndim_ph_meas,max_ndim_ph_meas,n_ph_meas))
 
@@ -314,7 +311,13 @@ SUBROUTINE init()
   DO i=1,n_ph_meas
     READ(10,*) ndim_ph_meas(i), name_ph_meas(i)
     DO k=1,ndim_ph_meas(i)
-      READ(10,*) da_ph_meas(k,i), db_ph_meas(k,i), dc_ph_meas(k,i), orb_ph_meas(k,i), flv_ph_meas(k,i)
+      READ(10,*) da, db, dc, orb, flv_ph_meas(k,i)
+      DO a=1,La; DO b=1,Lb; DO c=1,Lc
+        a2=mod(a+da-1+La,La)+1
+        b2=mod(b+db-1+Lb,Lb)+1
+        c2=mod(c+dc-1+Lc,Lc)+1
+        nb_ph_meas(a,b,c,k,i)=label(a2,b2,c2,orb)
+      END DO; END DO; END DO
     END DO
     DO flv=1,nflv
       DO k=1,ndim_ph_meas(i)
@@ -326,10 +329,7 @@ SUBROUTINE init()
   !
   READ(10,*) n_pp_meas, max_ndim_pp_meas
   ALLOCATE(ndim_pp_meas(n_pp_meas),name_pp_meas(n_pp_meas))
-  ALLOCATE(da_pp_meas(max_ndim_pp_meas,n_pp_meas))
-  ALLOCATE(db_pp_meas(max_ndim_pp_meas,n_pp_meas))
-  ALLOCATE(dc_pp_meas(max_ndim_pp_meas,n_pp_meas))
-  ALLOCATE(orb_pp_meas(max_ndim_pp_meas,n_pp_meas))
+  ALLOCATE(nb_pp_meas(La,Lb,Lc,max_ndim_pp_meas,n_pp_meas))
   ALLOCATE(flv_pp_meas(max_ndim_pp_meas,n_pp_meas))
   ALLOCATE(fmat_pp_meas(max_ndim_pp_meas,max_ndim_pp_meas,n_pp_meas))
 
@@ -337,7 +337,13 @@ SUBROUTINE init()
   DO i=1,n_pp_meas
     READ(10,*) ndim_pp_meas(i), name_pp_meas(i)
     DO k=1,ndim_pp_meas(i)
-      READ(10,*) da_pp_meas(k,i), db_pp_meas(k,i), dc_pp_meas(k,i), orb_pp_meas(k,i), flv_pp_meas(k,i)
+      READ(10,*) da, db, dc, orb, flv_pp_meas(k,i)
+      DO a=1,La; DO b=1,Lb; DO c=1,Lc
+        a2=mod(a+da-1+La,La)+1
+        b2=mod(b+db-1+Lb,Lb)+1
+        c2=mod(c+dc-1+Lc,Lc)+1
+        nb_pp_meas(a,b,c,k,i)=label(a2,b2,c2,orb)
+      END DO; END DO; END DO
     END DO
     DO flv=1,nflv
       DO k=1,ndim_pp_meas(i)
@@ -362,7 +368,7 @@ SUBROUTINE init()
     READ(10,*) cross_pp_meas(:,i)
   END DO
 
-  
+  !
   READ(10,*) do_measure_external, n_meas_external
   READ(10,*) do_tmpout_external
   READ(10,*) do_postprocess_external
