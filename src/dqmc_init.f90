@@ -369,6 +369,7 @@ SUBROUTINE init()
   END DO
 
   !
+  READ(10,*) FAtech
   READ(10,*) do_measure_external, n_meas_external
   READ(10,*) do_tmpout_external
   READ(10,*) do_postprocess_external

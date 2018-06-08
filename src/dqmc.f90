@@ -188,6 +188,8 @@ MODULE dqmc
   ! dimension (2,ncross_ph_meas) and (2,ncross_pp_meas)
   INTEGER, ALLOCATABLE :: cross_ph_meas(:,:), cross_pp_meas(:,:)
 
+  LOGICAL FAtech
+  
   LOGICAL do_measure_external
 
   !---------------------

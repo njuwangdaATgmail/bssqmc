@@ -1,7 +1,7 @@
 #===========================================================
 # system parameters
 F90 = mpif90
-FCOPTS = -O2 -cpp -DMPI -fexternal-blas -fbounds-check -Wall -Wextra #-g -fbacktrace 
+FCOPTS = -O2 -cpp -DMPI -fexternal-blas -fbounds-check #-Wall #-Wextra #-g -fbacktrace 
 LDOPTS = -O2
 LIBS = -lopenblas
 #==========================================================
