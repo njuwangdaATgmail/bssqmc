@@ -2,7 +2,7 @@
 ! This module is designed as the core of a general auxiliary field
 ! DQMC program. It can be used by externally calling
 !   dqmc_driver().
-! 
+!
 !-------------------------------------------------------------------
 ! List of external subroutines which should be specified by users:
 !
@@ -47,23 +47,23 @@
 ! postprocess()
 ! - MC averaged observable x and its errbar can be read out by calling
 !     get_pool(x,x_err)
-! 
+!
 ! generate_newfield_local(newfield,site,time,delta,ifield)
 ! - generate newfield at (site,time) and return
 !     delta = exp((newfield-oldfield)*F) - 1
 !   where F is the form factor of the auxiliary field
-! 
+!
 ! generate_newfield_global(ifield)
 ! - generate newfield globally
-! 
+!
 ! acceptprob_local(ratio,newfield,site,time,ifield,rtot)
 ! - evaluate acceptance ratio locally
 !     rtot = ratio(1)*...*ratio(nflv) * W
 !   where W accounts for free boson part
-! 
+!
 ! acceptprob_global(ratio,newfield,ifield,rtot)
 ! - the same as acceptprob_local but for global update
-! 
+!
 ! get_expV(site,time,ifield,flv,inv,expV)
 ! - return exp(V) = exp(field(site,time,flv)*F)
 !   where F is the form factor of the auxiliary field
@@ -73,9 +73,9 @@
 ! Todo:
 ! + add a logical variable to control whether the restart-mechanism is needed
 ! + add a logical variable to control whether the Bstring-technique is needed
-! + checkerboard technique: expk=expk1*expk2*... 
+! + checkerboard technique: expk=expk1*expk2*...
 !   where each expki is block diagonalized
-! + add more evolve subroutines to faciliate the calculation of time displaced 
+! + add more evolve subroutines to faciliate the calculation of time displaced
 !   Green's functions
 !
 !
@@ -739,11 +739,11 @@ CONTAINS
     INTEGER, INTENT(IN) :: time
     INTEGER flag,p,i,flv
     COMPLEX(8) t(nelec,nelec),lmat(nelec,nsite),rmat(nsite,nelec),gfast(nsite,nsite)!,tmp(nsite,nsite)
-    
+
     DO flv=1,nflv
 
       gfast=g(:,:,flv)
-      
+
       lmat=conjg(transpose(slater(:,:,flv)))
       CALL zlq(nelec,nsite,lmat,t)
       flag=0
@@ -777,29 +777,29 @@ CONTAINS
       DO i=1,nsite
         g(i,i,flv)=g(i,i,flv)+1d0
       END DO
-      
+
       IF(time>1)THEN
         gfast=matmul(matmul(expk(:,:,flv),gfast),inv_expk(:,:,flv))
         err_fast=max(maxval(abs(gfast-g(:,:,flv))),err_fast)
       END IF
 
     END DO
-  
+
   END SUBROUTINE update_scratch_T0_
-  
+
   !> calculate T>0 Green's function from definition, using QDR decomposition stabilization algorithm.
   SUBROUTINE update_scratch_(time)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time
     INTEGER d,flag,p0,p,i,flv
     COMPLEX(8) dvec(nsite),qmat(nsite,nsite),rmat(nsite,nsite),gtmp(nsite,nsite),gfast(nsite,nsite)
-    
+
     DO flv=1,nflv
 
       gfast=g(:,:,flv)
 
       d=nsite
-      
+
       dvec=1d0
       qmat=0d0
       g(:,:,flv)=0d0
@@ -807,7 +807,7 @@ CONTAINS
         qmat(i,i)=1d0
         g(i,i,flv)=1d0
       END DO
-      
+
       flag=0
       DO p0=time,ntime+time-1
         p=p0;IF(p>ntime)p=p-ntime
@@ -823,7 +823,7 @@ CONTAINS
         g(:,:,flv)=matmul(rmat,gtmp)
         !CALL zgemm('n','n',d,d,d,zone,rmat,d,gtmp,d,zzero,g,d)
       END DO
-      
+
       CALL inverse(d,qmat)
       DO i=1,d
         g(:,i,flv)=dvec(:)*g(:,i,flv)

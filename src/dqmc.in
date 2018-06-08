@@ -1,0 +1,110 @@
+#---------------------------
+# Monte Carlo control block
+#---------------------------
+f         :restart
+f         :proj
+2         :nflv
+4d0      :beta
+0.1     :dtau
+10       :nsp
+1       :nbin
+10000     :nwarmup
+20000     :nmeasure
+1         :ninterval
+100      :ntmpout
+10       :nscratch
+10       :ngroup
+223703     :randomseed
+0.0d0    :newMetro
+
+#-----------------------
+# fermion lattice block
+#-----------------------
+1       :norb
+4   4  1   :La, Lb, Lc
+8          :nelec
+t   t  f   :pbca, pbcb, pbcc
+0d0 0d0 0d0  :twista,twistb,twistc
+
+1d0 0d0 0d0  :a0r
+0d0 1d0 0d0  :b0r
+0d0 0d0 1d0  :c0r
+
+0d0 0d0 0d0  :rorb(:,1:norb)
+
+1   1   0  :cuta,cutb,cutc, hopping range
+2         :# of nonzero hopping elements
+1 0 0 1 1 -1d0 0d0   :hop(da,db,orb1,orb2)
+0 1 0 1 1 -1d0 0d0
+
+#-----------------------
+# boson field block
+#-----------------------
+! n_g, nfield, max_ndim_field, max_isingmax
+
+! type_field, n_checkerboard
+
+! if |type_field|<100, read g_field
+
+! if type_field<0, read dphi, dphi_global
+
+! if type_field>=100, read isingmax
+
+! if |type_field|>=100, user-defined
+
+! ninterval_global global_method
+
+! ndim_field
+
+! fmat
+
+! subspace: da,db,dc,orb2
+
+! mask_field_site
+
+
+#-----------------------
+# measurement block
+#-----------------------
+! nk_meas
+! k_array
+
+! nr_meas
+! r_meas
+
+! nrr_meas
+! rr_meas
+
+! ntau_meas
+
+! n_ph_meas, max_ndim_ph_meas
+
+! for i=1,n_ph_meas
+! ndim_ph_meas(i), name_ph_meas(i)
+! da_ph_meas(i), db_ph_meas(i), dc_ph_meas(i), orb_ph_meas(i)
+! fmat_ph_meas(:,:,1,i)
+! ...
+! fmat_ph_meas(:,:,nflv,i)
+
+! n_pp_meas, max_ndim_pp_meas
+
+! for i=1,n_pp_meas
+! ndim_pp_meas(i), name_pp_meas(i)
+! da_pp_meas(i), db_pp_meas(i), dc_pp_meas(i), orb_pp_meas(i)
+! fmat_pp_meas(:,:,1,i)
+! ...
+! fmat_pp_meas(:,:,nflv,i)
+
+! ncross_ph_meas
+! cross_ph_meas(1:2,i)
+
+! ncross_pp_meas
+! cross_pp_meas(1:2,i)
+
+! FAtech
+
+! meas_external, n_meas_external
+
+! tmpout_external
+
+! output_external

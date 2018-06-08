@@ -1,6 +1,6 @@
 !---------------------------------------------------------------------------
-! This is a wrapper of the dqmc_core. It defines a 3D (1-2D are special cases) 
-! fermionic lattice coupling to boson fields. The boson fields can be either 
+! This is a wrapper of the dqmc_core. It defines a 3D (1-2D are special cases)
+! fermionic lattice coupling to boson fields. The boson fields can be either
 ! descrete (called ising) or continuous (called phi).
 !
 ! NOTICE: In this module, uniform fermion-fermion and fermion-boson
@@ -11,18 +11,23 @@
 ! to be added...
 !---------------------------------------------------------------------------
 ! Todo:
-! + aobut initialization: realize a general UVJ-phonon-phi4 model and 
+! + aobut initialization: realize a general UVJ-phonon-phi4 model and
 !   provide relevant subroutines to realize any new boson fields.
 ! + about measurement: all measurements are correlation functions
 !   (1) single-particle:  [(x1,y1,z1,orb1), (x2,y2,z2,orb2)]
-!   (2) two-particle:     [(x1,y1,z1,orb1), (x1+dx,y1+dy,z1+dz,orb1')] --> 
+!   (2) two-particle:     [(x1,y1,z1,orb1), (x1+dx,y1+dy,z1+dz,orb1')] -->
 !       (both PP and PH)  [(x2,y2,z2,orb2), (x2+dx,y2+dy,z2+dz,orb2')]
 !                         with form factor fmat_meas(:,:)
 !      so the user only need provide the form factor and its subspace
 !---------------------------------------------------------------------------
+!
+! the boson fields are redefined with no need to distinguish ising and phi
+! isingmax=0 is used to identify continuous boson fields
 MODULE dqmc
 
   USE dqmc_core
+
+  REAL(8), PARAMETER :: twopi = 2*acos(-1d0)
 
   !-------------------------------------------------
   ! fermion field parameters
@@ -33,7 +38,7 @@ MODULE dqmc
 
   ! lattice size
   INTEGER La, Lb, Lc
-  
+
   ! number of orbitals
   INTEGER norb
 
@@ -67,100 +72,134 @@ MODULE dqmc
   ! kinetic Hamiltonian
   COMPLEX(8), ALLOCATABLE :: kmat(:,:,:)
 
-  !---------------------------------------------------
-  ! Ising-type boson field parameters
-  !   gamma(field) * exp( lam(field) * fmat(:,:) )
-  ! NOTICE: lam can be viewed as fermion-boson coupling and
-  !         gamma can be viewed as free-boson action
-  !---------------------------------------------------
+  !--------------------------------------------------
+  ! boson field parameters
+  !   gamma_ising * exp( lam_ising * (fmat-f0) )
+  ! ->gamma_ising * exp( lam_ising * fmat )
+  ! or
+  !   exp( - field * f0 ) * exp( field * fmat )
+  !--------------------------------------------------
 
-  ! number of ising fields
-  INTEGER nising
+  ! the type of the boson field
+  ! dimension (nfield)
+  ! type_field =  1 : HS1
+  !               2 : HS2
+  !               3 : HSgeneral
+  !              -1 : continuous HS
+  !              -2 : local phonon
+  !          others : undefined yet
+  !           >=100 : user-defined ising
+  !          <=-100 : user-defined phi
+  INTEGER, ALLOCATABLE :: type_field(:)
 
-  ! dimension for each ising field
-  ! dimension (nising)
-  INTEGER, ALLOCATABLE :: ndim_ising(:) 
+  ! interaction or other parameters to characterize the boson field
+  !   H = g(1)/2 * ( c'*fmat*c - g(2) )^2
+  ! for phonon
+  !   H = eta * ( c'*fmat*c - g(2) )
+  !   with g(3)=debye and g(1)=eta^2/M/debye^2
+  ! dimension (3,nfield)
+  ! in all default models, at most 3 parameters are enough to describe the boson field
+  REAL(8), ALLOCATABLE :: g_field(:,:)
 
-  ! list of all sites belong to one ising field living on one representative site.
-  ! dimension (nsite,maxval(ndim_ising),nising)
-  INTEGER, ALLOCATABLE :: nb_ising(:,:,:)
- 
-  ! whether an ising field exists?
-  ! dimension (nising)
-  LOGICAL, ALLOCATABLE :: mask_ising(:)
-
-  ! whether a site lives an ising field
-  ! dimension (nsite,nising)
-  LOGICAL, ALLOCATABLE :: mask_ising_site(:,:)
-
-  ! the number of allowed values of an ising field
-  ! dimension (nising)
+  ! the number of allowed values of the boson field
+  ! if isingmax=0, it corresponds to a continuous field
+  ! dimension (nfield)
   INTEGER, ALLOCATABLE :: isingmax(:)
 
-  ! flip an ising field to a new value
+  ! local update of ising-type field:
+  !   flip of the ising field to a new value
+  ! for continuous field, it's useless
   ! dimension (maxval(isingmax)-1,maxval(isingmax))
   INTEGER, ALLOCATABLE :: isingflip(:,:)
 
-  ! form factor of a given ising field
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_ising(:,:,:,:)
+  ! local update of phi-type field:
+  !   phi -> phi + dphi/dphi_global
+  ! for ising-type field, it's useless
+  ! dimension (nfield)
+  COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
 
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),nising,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_ising_U(:,:,:,:)
-  
-  ! dimension (maxval(ndim_ising),nising,nflv)
-  REAL(8), ALLOCATABLE :: fmat_ising_expE(:,:,:)
+  ! indicate the method to do global udpate
+  INTEGER, ALLOCATABLE :: global_method(:)
 
-  ! lambda of the ising field
-  ! dimension (maxval(isingmax),nising)
+  ! form factor of a given boson field
+  ! dimension (maxval(ndim_field),maxval(ndim_field),nfield,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat(:,:,:,:)
+
+  ! dimension (maxval(ndim_field),maxval(ndim_field),nfield,nflv)
+  COMPLEX(8), ALLOCATABLE :: fmat_U(:,:,:,:)
+
+  ! dimension (maxval(ndim_field),nfield,nflv)
+  REAL(8), ALLOCATABLE :: fmat_expE(:,:,:)
+
+  ! lambda of the ising-type field
+  ! dimension (maxval(isingmax),nfield)
   COMPLEX(8), ALLOCATABLE :: lam_ising(:,:)
 
-  ! gamma of the iisng field
-  ! dimension (maxval(isingmax),nising)
+  ! gamma of the ising-type field
+  ! dimension (maxval(isingmax),nfield)
   COMPLEX(8), ALLOCATABLE :: gamma_ising(:,:)
 
   ! exp(lam*F) and exp(-lam*F)
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,nising,nflv)
+  ! only used for ising-type field
+  ! dimension (maxval(ndim_field),maxval(ndim_field),maxval(isingmax),nfield,nflv)
   COMPLEX(8), ALLOCATABLE :: expflam_ising(:,:,:,:,:), inv_expflam_ising(:,:,:,:,:)
-  
+
   ! exp((lam'-lam)*F)-1
-  ! dimension (maxval(ndim_ising),maxval(ndim_ising),isingmax,isingmax,nising,nflv)
+  ! only used for ising-type field
+  ! dimension (maxval(ndim_field),maxval(ndim_field),maxval(isingmax),maxval(isingmax),nfield,nflv)
   COMPLEX(8), ALLOCATABLE :: diff_ef_ising(:,:,:,:,:,:)
 
+  !-------------------------------------
+  ! measurement parameters
+  ! default measurements are classified into 3 classies:
+  !   single particle Green's function <c'(i,t)c(j,0)>
+  !   PH channel two-particle Green's function <PH'(i,t)PH(j,0)>
+  !   PP channel two-particle Green's function <PP'(i,t)PP(j,0)>
+  !-------------------------------------
 
-  !--------------------------------------------------
-  ! continuous boson field parameters
-  !   exp( field * fmat(:,:) )
-  ! the free boson action is not defined here
-  !--------------------------------------------------
+  !LOGICAL meas_k, meas_r, meas_rr, meas_tau
 
-  ! number of continuous boson fields
-  INTEGER nphi
-  
-  ! dimension for each continuous field
-  INTEGER, ALLOCATABLE :: ndim_phi(:)  ! (nphi)
+  INTEGER nk_meas, nr_meas, nrr_meas, ntau_meas
 
-  ! dimension (nsite,maxval(ndim_phi),nphi)
-  INTEGER, ALLOCATABLE :: nb_phi(:,:,:) 
+  INTEGER, ALLOCATABLE :: k_array(:,:), r_array(:,:), rr_array(:,:,:)
 
-  ! dimension (nphi)
-  LOGICAL, ALLOCATABLE :: mask_phi(:)
+  COMPLEX(8), ALLOCATABLE :: expikr_array(:,:,:,:)
 
-  ! dimension (nsite,nphi)
-  LOGICAL, ALLOCATABLE :: mask_phi_site(:,:)
+  INTEGER n_ph_meas, n_pp_meas
 
-  ! update phi by changing to phi+dphi/dphi_global
-  ! dimension (nphi)
-  COMPLEX(8), ALLOCATABLE :: dphi(:), dphi_global(:)
+  CHARACTER(8), ALLOCATABLE :: name_ph_meas(:), name_pp_meas(:)
 
-  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_phi(:,:,:,:)
+  INTEGER, ALLOCATABLE :: ndim_ph_meas(:), ndim_pp_meas(:)
 
-  ! dimension (maxval(ndim_phi),maxval(ndim_phi),nphi,nflv)
-  COMPLEX(8), ALLOCATABLE :: fmat_phi_U(:,:,:,:)
+  INTEGER, ALLOCATABLE :: flv_ph_meas(:,:)
 
-  ! dimension (maxval(ndim_phi),nphi,nflv)
-  REAL(8), ALLOCATABLE :: fmat_phi_expE(:,:,:)
+  INTEGER, ALLOCATABLE :: nb_ph_meas(:,:,:,:,:)  !(La,Lb,Lc,maxval(ndim_ph_meas),n_ph_meas)
+
+  INTEGER, ALLOCATABLE :: flv_pp_meas(:,:)
+
+  INTEGER, ALLOCATABLE :: nb_pp_meas(:,:,:,:,:)  !(La,Lb,Lc,maxval(ndim_pp_meas),n_pp_meas)
+
+  COMPLEX(8), ALLOCATABLE :: fmat_ph_meas(:,:,:), fmat_pp_meas(:,:,:)
+
+  INTEGER ncross_ph_meas, ncross_pp_meas
+
+  CHARACTER(8), ALLOCATABLE :: name_cross_ph_meas(:), name_cross_pp_meas(:)
+
+  ! dimension (2,ncross_ph_meas) and (2,ncross_pp_meas)
+  INTEGER, ALLOCATABLE :: cross_ph_meas(:,:), cross_pp_meas(:,:)
+
+  LOGICAL FAtech
+
+  LOGICAL do_measure_external
+
+  !---------------------
+  ! other controls
+  !---------------------
+
+  LOGICAL do_tmpout_external
+
+  LOGICAL do_postprocess_external
+
 
 CONTAINS
 
@@ -181,7 +220,7 @@ CONTAINS
     COMPLEX(8) boundary
 
     IF(.not.allocated(kmat)) ALLOCATE(kmat(La*Lb*Lc*norb,La*Lb*Lc*norb,nflv))
-    
+
     kmat=0d0
 
     DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(a,b,c,orb)
@@ -255,7 +294,7 @@ CONTAINS
     END DO; END DO; END DO; END DO
 
   END SUBROUTINE set_kmat
-  
+
   ! set exp(K)=exp(-dtau*H0)
   ! NOTICE: before calling this subroutine, kmat must be generated
   !         after this subroutine, kmat is changed and must be set again
@@ -309,27 +348,18 @@ CONTAINS
   END SUBROUTINE
 
   !
-  SUBROUTINE init_ising_random(ifield,ifield_tot)
+  SUBROUTINE init_field_random(ifield)
     IMPLICIT NONE
-    INTEGER ifield,ifield_tot,time,site
-    field(:,:,ifield_tot)=0
-    IF(.not.mask_ising(ifield))RETURN
-    DO time=1,ntime
-      DO site=1,nsite
-        IF(mask_ising_site(site,ifield)) field(site,time,ifield_tot)=irand(isingmax(ifield))+1
-      END DO
-    END DO
-  END SUBROUTINE
-
-  !
-  SUBROUTINE init_phi_random(ifield,ifield_tot)
-    IMPLICIT NONE
-    INTEGER ifield,ifield_tot,time,site
-    field(:,:,ifield_tot)=0d0
-    IF(.not.mask_phi(ifield))RETURN
-    DO time=1,ntime
-      DO site=1,nsite
-        IF(mask_phi_site(site,ifield)) field(site,time,ifield_tot)=drand_sym()*dphi(ifield)
+    INTEGER ifield,site,time
+    field(:,:,ifield)=0d0
+    IF(.not.mask_field(ifield))RETURN
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+      DO time=1,ntime
+        IF(isingmax(ifield)==0)THEN
+          field(site,time,ifield)=drand_sym()*dphi(ifield)
+        ELSE
+          field(site,time,ifield)=irand(isingmax(ifield))+1
+        END IF
       END DO
     END DO
   END SUBROUTINE
@@ -350,44 +380,51 @@ CONTAINS
       END DO
     END DO
   END SUBROUTINE
-  
+
   !
-  SUBROUTINE set_expf_ising()
+  SUBROUTINE set_expf()
     IMPLICIT NONE
-    INTEGER ifield,n,z,d,a,b,s,s2,flv
-    
-    n=maxval(ndim_ising)
+    INTEGER ifield,d,z,a,b,s,s2,flv
+
+    d=maxval(ndim_field)
     z=maxval(isingmax)
-    
-    IF(.not.allocated(fmat_ising_U)) ALLOCATE(fmat_ising_U(n,n,nising,nflv))
-    IF(.not.allocated(fmat_ising_expE)) ALLOCATE(fmat_ising_expE(n,nising,nflv))
-    IF(.not.allocated(expflam_ising)) ALLOCATE(expflam_ising(n,n,z,nising,nflv))
-    IF(.not.allocated(inv_expflam_ising)) ALLOCATE(inv_expflam_ising(n,n,z,nising,nflv))
-    IF(.not.allocated(diff_ef_ising)) ALLOCATE(diff_ef_ising(n,n,z,z,nising,nflv))
-    
-    DO ifield=1,nising
-      
-      d=ndim_ising(ifield)
+
+    ! allocate fmat_U and fmat_expE
+    IF(.not.allocated(fmat_U)) ALLOCATE(fmat_U(d,d,nfield,nflv))
+    IF(.not.allocated(fmat_expE)) ALLOCATE(fmat_expE(d,nfield,nflv))
+
+    IF(z>0)THEN
+      ! allocate (inv_)expflam_ising and diff_ef_ising used for ising-type fields
+      IF(.not.allocated(expflam_ising)) ALLOCATE(expflam_ising(d,d,z,nfield,nflv))
+      IF(.not.allocated(inv_expflam_ising)) ALLOCATE(inv_expflam_ising(d,d,z,nfield,nflv))
+      IF(.not.allocated(diff_ef_ising)) ALLOCATE(diff_ef_ising(d,d,z,z,nfield,nflv))
+    END IF
+
+    DO ifield=1,nfield
+
+      d=ndim_field(ifield)
+      z=isingmax(ifield)
 
       DO flv=1,nflv
 
-        ! set fmat_ising_U and fmat_ising_expE
-        fmat_ising_U(1:d,1:d,ifield,flv)=fmat_ising(1:d,1:d,ifield,flv)
-        CALL eigen(d,fmat_ising_U(1:d,1:d,ifield,flv),fmat_ising_expE(1:d,ifield,flv))
-        fmat_ising_expE(1:d,ifield,flv)=exp(fmat_ising_expE(1:d,ifield,flv))
-        
+        ! set fmat_U and fmat_expE
+        fmat_U(1:d,1:d,ifield,flv)=fmat_U(1:d,1:d,ifield,flv)
+        CALL eigen(d,fmat_U(1:d,1:d,ifield,flv),fmat_expE(1:d,ifield,flv))
+        fmat_expE(1:d,ifield,flv)=exp(fmat_expE(1:d,ifield,flv))
+
+
         ! set expf(lam*fmat) and expf(-lam*fmat)
         DO s=1,z
           DO a=1,d
             DO b=1,d
-              expflam_ising(a,b,s,ifield,flv)=sum(fmat_ising_U(a,1:d,ifield,flv) &
-                & *fmat_ising_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_ising_U(b,1:d,ifield,flv)))    
-              inv_expflam_ising(a,b,s,ifield,flv)=sum(fmat_ising_U(a,1:d,ifield,flv) &
-                & /fmat_ising_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_ising_U(b,1:d,ifield,flv)))    
+              expflam_ising(a,b,s,ifield,flv)=sum(fmat_U(a,1:d,ifield,flv) &
+                & *fmat_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_U(b,1:d,ifield,flv)))
+              inv_expflam_ising(a,b,s,ifield,flv)=sum(fmat_U(a,1:d,ifield,flv) &
+                & /fmat_expE(1:d,ifield,flv)**lam_ising(s,ifield)*conjg(fmat_U(b,1:d,ifield,flv)))
             END DO
           END DO
         END DO
-        
+
         ! set expf((lam'-lam)*fmat)-1
         DO s=1,z
           DO s2=1,z
@@ -404,99 +441,208 @@ CONTAINS
     END DO
 
   END SUBROUTINE
-  
-  !
-  SUBROUTINE set_expf_phi()
-    IMPLICIT NONE
-    INTEGER ifield,n,d,flv
-    
-    n=maxval(ndim_phi)
-    
-    IF(.not.allocated(fmat_phi_U)) ALLOCATE(fmat_phi_U(n,n,nphi,nflv))
-    IF(.not.allocated(fmat_phi_expE)) ALLOCATE(fmat_phi_expE(n,nphi,nflv))
-    
-    DO ifield=1,nphi
-      
-      d=ndim_phi(ifield)
 
-      DO flv=1,nflv
+END MODULE
 
-        ! set fmat_ising_U and fmat_ising_expE
-        fmat_phi_U(1:d,1:d,ifield,flv)=fmat_phi(1:d,1:d,ifield,flv)
-        CALL eigen(d,fmat_phi_U(1:d,1:d,ifield,flv),fmat_phi_expE(1:d,ifield,flv))
-        fmat_phi_expE(1:d,ifield,flv)=exp(fmat_phi_expE(1:d,ifield,flv))
-
-      END DO
-      
-    END DO
-
-  END SUBROUTINE
-
-  !
-  SUBROUTINE generate_newising_local(newising,oldising,delta,ifield)
-    IMPLICIT NONE
-    INTEGER newising,oldising,ifield,d,flv
-    COMPLEX(8) delta(ndim_ising(ifield),ndim_ising(ifield),nflv)
-    d=ndim_ising(ifield)
-    newising=isingflip(irand(isingmax(ifield)-1)+1,oldising)
-    DO flv=1,nflv
-      delta(1:d,1:d,flv)=diff_ef_ising(1:d,1:d,newising,oldising,ifield,flv)
-    END DO
-  END SUBROUTINE
-
-  !
-  SUBROUTINE generate_newphi_local(newphi,oldphi,delta,ifield)
-    IMPLICIT NONE
-    INTEGER ifield,d,a,b,flv
-    COMPLEX(8) newphi,oldphi,delta(ndim_phi(ifield),ndim_phi(ifield),nflv)
-    d=ndim_phi(ifield)
-    newphi=oldphi+drand_sym()*dphi(ifield)
+!
+SUBROUTINE generate_newfield_local(newfield,site,time,delta,ifield)
+  USE dqmc
+  IMPLICIT NONE
+  INTEGER site,time,ifield,d,a,b,flv,z
+  COMPLEX(8) newfield,oldfield,delta(ndim_field(ifield),ndim_field(ifield),nflv)
+  d=ndim_field(ifield)
+  z=isingmax(ifield)
+  oldfield=field(site,time,ifield)
+  IF(z==0)THEN
+    newfield=oldfield+drand_sym()*dphi(ifield)
     DO flv=1,nflv
       DO a=1,d
         DO b=1,d
-          delta(a,b,flv)=sum(fmat_phi_U(a,1:d,ifield,flv)*fmat_phi_expE(1:d,ifield,flv) &
-            & **(newphi-oldphi)*conjg(fmat_phi_U(b,1:d,ifield,flv)))
+          delta(a,b,flv)=sum(fmat_U(a,1:d,ifield,flv)*fmat_expE(1:d,ifield,flv) &
+            & **(newfield-oldfield)*conjg(fmat_U(b,1:d,ifield,flv)))
         END DO
         delta(a,a,flv)=delta(a,a,flv)-1d0
       END DO
     END DO
-  END SUBROUTINE
+  ELSE
+    newfield=isingflip(irand(z-1)+1,nint(real(oldfield)))
+    DO flv=1,nflv
+      delta(1:d,1:d,flv)=diff_ef_ising(1:d,1:d,nint(real(newfield)),nint(real(oldfield)),ifield,flv)
+    END DO
+  END IF
+END SUBROUTINE
 
-  !
-  SUBROUTINE get_expV_ising(newising,ifield,flv,inv,expV)
-    IMPLICIT NONE
-    INTEGER newising,ifield,flv,d
-    LOGICAL inv
-    COMPLEX(8) expV(ndim_ising(ifield),ndim_ising(ifield))
-    d=ndim_ising(ifield)
-    IF(inv)THEN
-      expV=inv_expflam_ising(1:d,1:d,newising,ifield,flv)
+!
+SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
+  USE dqmc
+  IMPLICIT NONE
+  INTEGER site,time,ifield,flv
+  COMPLEX(8) ratio(nflv),newfield,rtot,oldfield,gph_x2,gph_p2,f0,diffnew,diffold
+  oldfield=field(site,time,ifield)
+  IF(type_field(ifield)>=1.and.type_field(ifield)<=3)THEN
+    ! ising-type HS field
+    ! NOTICE f0 has been absorbed into the definition of gamma_ising
+    rtot=gamma_ising(nint(real(newfield)),ifield)/gamma_ising(nint(real(oldfield)),ifield)
+    DO flv=1,nflv
+      rtot=rtot*ratio(flv)
+    END DO
+  ELSEIF(type_field(ifield)==-1)THEN
+    ! continuous HS field
+    gph_x2=0.5d0/g_field(1,ifield)/dtau
+    f0=g_field(2,ifield)
+    rtot=exp(-gph_x2*(newfield**2-oldfield**2)-f0*(newfield-oldfield))
+    DO flv=1,nflv
+      rtot=rtot*ratio(flv)
+    END DO
+  ELSEIF(type_field(ifield)==-2)THEN
+    ! local phonon field
+    gph_x2=0.5d0/g_field(1,ifield)/dtau
+    gph_p2=0.5d0/g_field(1,ifield)/dtau**3/g_field(3,ifield)**2
+    f0=g_field(2,ifield)
+    rtot=exp(-gph_x2*(newfield**2-oldfield**2)-f0*(newfield-oldfield))
+    diffnew=newfield-field(site,mod(time,ntime)+1,ifield)
+    diffold=oldfield-field(site,mod(time,ntime)+1,ifield)
+    rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2)) ! kinetic energy on (time,time+1)
+    diffnew=newfield-field(site,mod(time-2+ntime,ntime)+1,ifield)
+    diffold=oldfield-field(site,mod(time-2+ntime,ntime)+1,ifield)
+    rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2)) ! kinetic energy on (time,time-1)
+    DO flv=1,nflv
+      rtot=rtot*ratio(flv)
+    END DO
+  ELSEIF(abs(type_field(ifield))>=100)THEN
+    CALL acceptprob_local_external(ratio,newfield,site,time,ifield,rtot)
+  ELSE
+    IF(id==0) PRINT*,'undefined type_field'
+    CALL exit(0)
+  END IF
+END SUBROUTINE
+
+!
+SUBROUTINE generate_newfield_global(ifield)
+  USE dqmc
+  IMPLICIT NONE
+  INTEGER ifield,site,time
+  COMPLEX(8) shift
+  IF(global_method(ifield)==0)THEN
+    CALL init_field_random(ifield)
+  ELSEIF(global_method(ifield)==100)THEN
+    CALL generate_newfield_global_external(ifield)
+  ELSE
+    IF(isingmax(ifield)==0)THEN
+      ! continuous field
+      IF(global_method(ifield)==1)THEN
+        DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+          DO time=1,ntime
+            field(site,time,ifield)=field(site,time,ifield)+drand_sym()*dphi_global(ifield)
+          END DO
+        END DO
+      ELSEIF(global_method(ifield)==2)THEN
+        DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+          shift=drand_sym()*dphi_global(ifield)
+          field(site,:,ifield)=field(site,:,ifield)+shift
+        END DO
+      ELSE
+        IF(id==0) PRINT*,'undefined global_method for continuous field'
+        CALL exit(0)
+      END IF
     ELSE
-      expV=expflam_ising(1:d,1:d,newising,ifield,flv)
+      ! ising-type field
+      IF(id==0) PRINT*,'undefined global_method for ising-type field'
+      CALL exit(0)
     END IF
-  END SUBROUTINE
+  END IF
+END SUBROUTINE
 
-  !
-  SUBROUTINE get_expV_phi(newphi,ifield,flv,inv,expV)
-    IMPLICIT NONE
-    INTEGER ifield,flv,a,b,d
-    LOGICAL inv
-    COMPLEX(8) newphi,expV(ndim_phi(ifield),ndim_phi(ifield))
-    d=ndim_phi(ifield)
+SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
+  USE dqmc
+  IMPLICIT NONE
+  INTEGER ifield,site,time,flv
+  COMPLEX(8) ratio(nflv),newfield(nsite,ntime),rtot
+  COMPLEX(8) gph_x2,gph_p2,f0,newphi,oldphi,diffnew,diffold
+  IF(type_field(ifield)>=1.and.type_field(ifield)<=3)THEN
+    ! ising-type HS field
+    rtot=1d0
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+      DO time=1,ntime
+        rtot=rtot*gamma_ising(nint(real(newfield(site,time))), ifield) &
+          & /gamma_ising(nint(real(field(site,time,ifield))),ifield)
+      END DO
+    END DO
+    DO flv=1,nflv
+      rtot=rtot*ratio(flv)
+    END DO
+  ELSEIF(type_field(ifield)==-1)THEN
+    ! continuous HS field
+    gph_x2=0.5d0/g_field(1,ifield)/dtau
+    f0=g_field(2,ifield)
+    rtot=1d0
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+      DO time=1,ntime
+        newphi=newfield(site,time)
+        oldphi=field(site,time,ifield)
+        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi))
+      END DO
+    END DO
+    DO flv=1,nflv
+      rtot=rtot*ratio(flv)
+    END DO
+  ELSEIF(type_field(ifield)==-2)THEN
+    ! local phonon field
+    gph_x2=0.5d0/g_field(1,ifield)/dtau
+    gph_p2=0.5d0/g_field(1,ifield)/dtau**3/g_field(3,ifield)**2
+    f0=g_field(2,ifield)
+    rtot=1d0
+    DO site=1,nsite; IF(.not.mask_field_site(site,ifield))CYCLE
+      DO time=1,ntime
+        newphi=newfield(site,time)
+        oldphi=field(site,time,ifield)
+        rtot=rtot*exp(-gph_x2*(newphi**2-oldphi**2)-f0*(newphi-oldphi))
+        diffnew=newphi-newfield(site,mod(time,ntime)+1)
+        diffold=oldphi-field(site,mod(time,ntime)+1,ifield)
+        rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2))
+      END DO
+    END DO
+    DO flv=1,nflv
+      rtot=rtot*ratio(flv)
+    END DO
+  ELSEIF(abs(type_field(ifield))>=100)THEN
+    CALL acceptprob_global_external(ratio,newfield,ifield,rtot)
+  ELSE
+    IF(id==0) PRINT*,'undefined type_field'
+    CALL exit(0)
+  END IF
+END SUBROUTINE
+
+!
+SUBROUTINE get_expV(site,time,ifield,flv,inv,expV)
+  USE dqmc
+  IMPLICIT NONE
+  INTEGER site,time,ifield,flv,z,d,a,b
+  LOGICAL inv
+  COMPLEX(8) expV(ndim_field(ifield),ndim_field(ifield)),newfield
+  d=ndim_field(ifield)
+  z=isingmax(ifield)
+  newfield=field(site,time,ifield)
+  IF(z==0)THEN
     DO a=1,d
       DO b=1,d
         IF(inv)THEN
-          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)/fmat_phi_expE(1:d,ifield,flv) &
-            & **newphi*conjg(fmat_phi_U(b,1:d,ifield,flv)))
+          expV(a,b)=sum(fmat_U(a,1:d,ifield,flv)/fmat_expE(1:d,ifield,flv) &
+            & **newfield*conjg(fmat_U(b,1:d,ifield,flv)))
         ELSE
-          expV(a,b)=sum(fmat_phi_U(a,1:d,ifield,flv)*fmat_phi_expE(1:d,ifield,flv) &
-            & **newphi*conjg(fmat_phi_U(b,1:d,ifield,flv)))
+          expV(a,b)=sum(fmat_U(a,1:d,ifield,flv)*fmat_expE(1:d,ifield,flv) &
+            & **newfield*conjg(fmat_U(b,1:d,ifield,flv)))
         END IF
       END DO
     END DO
-  END SUBROUTINE
-
-END MODULE dqmc
+  ELSE
+    IF(inv)THEN
+      expV=inv_expflam_ising(1:d,1:d,nint(real(newfield)),ifield,flv)
+    ELSE
+      expV=expflam_ising(1:d,1:d,nint(real(newfield)),ifield,flv)
+    END IF
+  END IF
+END SUBROUTINE
 
 PROGRAM main
   USE dqmc
