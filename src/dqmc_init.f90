@@ -4,10 +4,15 @@ SUBROUTINE init()
   IMPLICIT NONE
 
   INTEGER i,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond
-  INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external
+  INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external,ierr
   INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
   REAL(8) re,re2,re3
   COMPLEX(8) hopvalue,ga1,lam1,ga2,lam2
+
+  IF(id==0) CALL regular_input()
+#ifdef MPI
+  CALL mpi_barrier(mpi_comm_world,ierr)
+#endif
 
 
   OPEN(10,file='dqmc.in')
@@ -399,4 +404,21 @@ SUBROUTINE print_input()
   OPEN(10,FILE='input.dat')
   WRITE(10,*) 'This is a place to print input parameters...'
   CLOSE(10)
+END SUBROUTINE
+
+SUBROUTINE regular_input()
+  IMPLICIT NONE
+  CHARACTER(80) str,str2
+  INTEGER stat
+  OPEN(10,file='dqmc.in')
+  OPEN(20,file='dqmc.in_')
+  DO
+    READ(10,'(a80)',iostat=stat) str
+    IF(stat/=0) exit
+    str2=trim(adjustl(str))
+    IF(str2(1:1)=='#'.or.str2(1:1)=='!'.or.str2(1:1)==':'.or.len(trim(adjustl(str2)))==0)CYCLE
+    WRITE(20,*) trim(adjustl(str2))
+  END DO
+  CLOSE(10)
+  CLOSE(20)
 END SUBROUTINE
