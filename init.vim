@@ -23,6 +23,8 @@ call plug#begin('~/.vim/plugged')
   
   Plug 'arakashic/nvim-colors-solarized'
 
+  Plug 'Yggdroot/indentLine'
+
 call plug#end()
 
 " external pdf viewer used by vimtex
@@ -36,4 +38,8 @@ syntax enable
 set background=dark
 colorscheme solarized
 
-
+" folding
+set foldenable
+set foldmethod=indent
+let fortran_fold=1
+set foldlevelstart=99
