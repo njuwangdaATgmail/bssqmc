@@ -7,7 +7,7 @@ SUBROUTINE measurement(time)
   USE dqmc
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: time
-  INTEGER i,j,k,flv,a,b,c,orb,a2,b2,c2,orb2,aa,bb,cc,da,db,dc,d,ir,p,tau
+  INTEGER i,j,k,flv,a,b,c,orb,a2,b2,c2,orb2,aa,bb,cc,da,db,dc,d,ir,p,tau,kk,dd,ic
   INTEGER i1,i2,i3,i4,k1,k2,k3,k4,flv1,flv2,flv3,flv4
   COMPLEX(8) kinetic,factor,g2(nsite,nsite,nflv),g3(nsite,nsite,nflv)
   COMPLEX(8), ALLOCATABLE :: ob4(:,:,:,:),obk(:),obr(:),obrr(:)
@@ -351,7 +351,275 @@ SUBROUTINE measurement(time)
     END IF
 
   END DO
+  
+  !----------------------------------------------------
+  ! crossing-PH-channel two-particle Green's functions
+  !----------------------------------------------------
+  
+  DO ic=1,ncross_ph_meas
+    
+    k=cross_ph_meas(1,ic)
+    kk=cross_ph_meas(2,ic)
+    d=ndim_ph_meas(k)
+    dd=ndim_ph_meas(kk)
 
+    IF(nk_meas>0)THEN
+      ALLOCATE(obk(nk_meas))
+      obk=0d0
+    END IF
+    IF(nr_meas>0)THEN
+      ALLOCATE(obr(nr_meas))
+      obr=0d0
+    END IF
+    IF(nrr_meas>0)THEN
+      ALLOCATE(obrr(nrr_meas))
+      obrr=0d0
+    END IF
+
+    DO k1=1,d; DO k2=1,d; DO k3=1,dd; DO k4=1,dd
+
+      IF(abs(fmat_ph_meas(k1,k2,k))<1d-6)CYCLE
+      IF(abs(fmat_ph_meas(k4,k3,kk))<1d-6)CYCLE
+      factor=fmat_ph_meas(k1,k2,k)*conjg(fmat_ph_meas(k4,k3,kk))
+
+      flv1=flv_ph_meas(k1,k)
+      flv2=flv_ph_meas(k2,k)
+      flv3=flv_ph_meas(k3,kk)
+      flv4=flv_ph_meas(k4,kk)
+
+      IF((.not.(flv1==flv2.and.flv3==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+
+      IF(nk_meas>0)THEN
+
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc
+          DO aa=1,La; DO bb=1,Lb; DO cc=1,Lc
+            da=a-aa; db=b-bb; dc=c-cc
+
+            i1=nb_ph_meas(a,b,c,k1,k)
+            i2=nb_ph_meas(a,b,c,k2,k)
+            i3=nb_ph_meas(aa,bb,cc,k3,kk)
+            i4=nb_ph_meas(aa,bb,cc,k4,kk)
+
+            ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
+            IF(flv1==flv2.and.flv3==flv4)THEN
+              obk=obk+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
+            END IF
+            IF(flv1==flv4.and.flv2==flv3)THEN
+              obk=obk+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
+            END IF
+
+          END DO; END DO; END DO
+        END DO; END DO; END DO
+
+      END IF
+
+      IF(nr_meas>0)THEN
+
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc
+          DO ir=1,nr_meas
+            aa=mod(a-r_array(1,ir)-1+La,La)+1
+            bb=mod(b-r_array(2,ir)-1+Lb,Lb)+1
+            cc=mod(c-r_array(3,ir)-1+Lc,Lc)+1
+
+            i1=nb_ph_meas(a,b,c,k1,k)
+            i2=nb_ph_meas(a,b,c,k2,k)
+            i3=nb_ph_meas(aa,bb,cc,k3,kk)
+            i4=nb_ph_meas(aa,bb,cc,k4,kk)
+
+            ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
+            IF(flv1==flv2.and.flv3==flv4)THEN
+              obr(ir)=obr(ir)+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor
+            END IF
+            IF(flv1==flv4.and.flv2==flv3)THEN
+              obr(ir)=obr(ir)+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor
+            END IF
+
+          END DO
+        END DO; END DO; END DO
+
+      END IF
+
+      IF(nrr_meas>0)THEN
+
+        DO ir=1,nrr_meas
+          a=rr_array(1,1,ir)
+          b=rr_array(2,1,ir)
+          c=rr_array(3,1,ir)
+          aa=rr_array(1,2,ir)
+          bb=rr_array(2,2,ir)
+          cc=rr_array(3,2,ir)
+
+          i1=nb_ph_meas(a,b,c,k1,k)
+          i2=nb_ph_meas(a,b,c,k2,k)
+          i3=nb_ph_meas(aa,bb,cc,k3,kk)
+          i4=nb_ph_meas(aa,bb,cc,k4,kk)
+
+          ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
+          IF(flv1==flv2.and.flv3==flv4)THEN
+            obrr(ir)=obrr(ir)+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor
+          END IF
+          IF(flv1==flv4.and.flv2==flv3)THEN
+            obrr(ir)=obrr(ir)+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor
+          END IF
+
+        END DO
+
+      END IF
+
+    END DO; END DO; END DO; END DO
+
+    IF(nk_meas>0)THEN
+      obk=obk*currentphase/(La*Lb*Lc)**2
+      CALL zput_array(nk_meas,obk)
+      DEALLOCATE(obk)
+    END IF
+    IF(nr_meas>0)THEN
+      obr=obr*currentphase/(La*Lb*Lc)
+      CALL zput_array(nr_meas,obr)
+      DEALLOCATE(obr)
+    END IF
+    IF(nrr_meas>0)THEN
+      obrr=obrr*currentphase
+      CALL zput_array(nrr_meas,obrr)
+      DEALLOCATE(obrr)
+    END IF
+
+  END DO
+
+  !--------------------------------------------
+  ! crossing-PP-channel two-particle Green's functions
+  !--------------------------------------------
+
+  DO ic=1,ncross_pp_meas
+
+    k=cross_pp_meas(1,ic)
+    kk=cross_pp_meas(2,ic)
+    d=ndim_pp_meas(k)
+    dd=ndim_pp_meas(kk)
+
+    IF(nk_meas>0)THEN
+      ALLOCATE(obk(nk_meas))
+      obk=0d0
+    END IF
+    IF(nr_meas>0)THEN
+      ALLOCATE(obr(nr_meas))
+      obr=0d0
+    END IF
+    IF(nrr_meas>0)THEN
+      ALLOCATE(obrr(nrr_meas))
+      obrr=0d0
+    END IF
+
+    DO k1=1,d; DO k2=1,d; DO k3=1,dd; DO k4=1,dd
+
+      IF(abs(fmat_pp_meas(k1,k2,k))<1d-6)CYCLE
+      IF(abs(fmat_pp_meas(k4,k3,kk))<1d-6)CYCLE
+      factor=fmat_pp_meas(k1,k2,k)*conjg(fmat_pp_meas(k4,k3,kk))
+
+      flv1=flv_pp_meas(k1,k)
+      flv2=flv_pp_meas(k2,k)
+      flv3=flv_pp_meas(k3,kk)
+      flv4=flv_pp_meas(k4,kk)
+
+      IF((.not.(flv1==flv3.and.flv2==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+
+      IF(nk_meas>0)THEN
+
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc
+          DO aa=1,La; DO bb=1,Lb; DO cc=1,Lc
+            da=a-aa; db=b-bb; dc=c-cc
+
+            i1=nb_pp_meas(a,b,c,k1,k)
+            i2=nb_pp_meas(a,b,c,k2,k)
+            i3=nb_pp_meas(aa,bb,cc,k3,kk)
+            i4=nb_pp_meas(aa,bb,cc,k4,kk)
+
+            ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
+            IF(flv1==flv3.and.flv2==flv4)THEN
+              obk=obk-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
+            END IF
+            IF(flv1==flv4.and.flv2==flv3)THEN
+              obk=obk+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
+            END IF
+
+          END DO; END DO; END DO
+        END DO; END DO; END DO
+
+      END IF
+
+      IF(nr_meas>0)THEN
+
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc
+          DO ir=1,nr_meas
+            aa=mod(a-r_array(1,ir)-1+La,La)+1
+            bb=mod(b-r_array(2,ir)-1+Lb,Lb)+1
+            cc=mod(c-r_array(3,ir)-1+Lc,Lc)+1
+
+            i1=nb_pp_meas(a,b,c,k1,k)
+            i2=nb_pp_meas(a,b,c,k2,k)
+            i3=nb_pp_meas(aa,bb,cc,k3,kk)
+            i4=nb_pp_meas(aa,bb,cc,k4,kk)
+
+            ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
+            IF(flv1==flv3.and.flv2==flv4)THEN
+              obr(ir)=obr(ir)-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor
+            END IF
+            IF(flv1==flv4.and.flv2==flv3)THEN
+              obr(ir)=obr(ir)+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor
+            END IF
+
+          END DO
+        END DO; END DO; END DO
+
+      END IF
+
+      IF(nrr_meas>0)THEN
+
+        DO ir=1,nrr_meas
+          a=rr_array(1,1,ir)
+          b=rr_array(2,1,ir)
+          c=rr_array(3,1,ir)
+          aa=rr_array(1,2,ir)
+          bb=rr_array(2,2,ir)
+          cc=rr_array(3,2,ir)
+
+          i1=nb_pp_meas(a,b,c,k1,k)
+          i2=nb_pp_meas(a,b,c,k2,k)
+          i3=nb_pp_meas(aa,bb,cc,k3,kk)
+          i4=nb_pp_meas(aa,bb,cc,k4,kk)
+
+          ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
+          IF(flv1==flv3.and.flv2==flv4)THEN
+            obrr(ir)=obrr(ir)-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor
+          END IF
+          IF(flv1==flv4.and.flv2==flv3)THEN
+            obrr(ir)=obrr(ir)+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor
+          END IF
+
+        END DO
+
+      END IF
+
+    END DO; END DO; END DO; END DO
+
+    IF(nk_meas>0)THEN
+      obk=obk*currentphase/(La*Lb*Lc)**2
+      CALL zput_array(nk_meas,obk)
+      DEALLOCATE(obk)
+    END IF
+    IF(nr_meas>0)THEN
+      obr=obr*currentphase/(La*Lb*Lc)
+      CALL zput_array(nr_meas,obr)
+      DEALLOCATE(obr)
+    END IF
+    IF(nrr_meas>0)THEN
+      obrr=obrr*currentphase
+      CALL zput_array(nrr_meas,obrr)
+      DEALLOCATE(obrr)
+    END IF
+
+  END DO
+  
   !---------------------------------
   ! unequal-time Green's functions
   !---------------------------------
@@ -863,6 +1131,335 @@ SUBROUTINE measurement(time)
         END IF
 
       END DO
+      
+      !--------------------------------------------
+      ! crossing-PH-channel two-particle Green's functions
+      !--------------------------------------------
+
+      DO ic=1,ncross_ph_meas
+        
+        k=cross_ph_meas(1,ic)
+        kk=cross_ph_meas(2,ic)
+        d=ndim_ph_meas(k)
+        dd=ndim_ph_meas(kk)
+
+        IF(nk_meas>0)THEN
+          ALLOCATE(obk(nk_meas),obk_(nk_meas))
+          obk=0d0; obk_=0d0
+        END IF
+        IF(nr_meas>0)THEN
+          ALLOCATE(obr(nr_meas),obr_(nr_meas))
+          obr=0d0; obr_=0d0
+        END IF
+        IF(nrr_meas>0)THEN
+          ALLOCATE(obrr(nrr_meas),obrr_(nrr_meas))
+          obrr=0d0; obrr_=0d0
+        END IF
+
+        DO k1=1,d; DO k2=1,d; DO k3=1,dd; DO k4=1,dd
+
+          IF(abs(fmat_ph_meas(k1,k2,k))<1d-6)CYCLE
+          IF(abs(fmat_ph_meas(k4,k3,kk))<1d-6)CYCLE
+          factor=fmat_ph_meas(k1,k2,k)*conjg(fmat_ph_meas(k4,k3,kk))
+
+          flv1=flv_ph_meas(k1,k)
+          flv2=flv_ph_meas(k2,k)
+          flv3=flv_ph_meas(k3,kk)
+          flv4=flv_ph_meas(k4,kk)
+
+          IF((.not.(flv1==flv2.and.flv3==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+
+          IF(nk_meas>0)THEN
+
+            DO a=1,La; DO b=1,Lb; DO c=1,Lc
+              DO aa=1,La; DO bb=1,Lb; DO cc=1,Lc
+                da=a-aa; db=b-bb; dc=c-cc
+
+                i1=nb_ph_meas(a,b,c,k1,k)
+                i2=nb_ph_meas(a,b,c,k2,k)
+                i3=nb_ph_meas(aa,bb,cc,k3,kk)
+                i4=nb_ph_meas(aa,bb,cc,k4,kk)
+
+                ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
+                IF(flv1==flv2.and.flv3==flv4)THEN
+                  obk=obk+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obk=obk+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
+                END IF
+
+                ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
+                IF(flv1==flv2.and.flv3==flv4)THEN
+                  obk_=obk_+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obk_=obk_+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
+                END IF
+
+              END DO; END DO; END DO
+            END DO; END DO; END DO
+
+          END IF
+
+          IF(nr_meas>0)THEN
+
+            DO a=1,La; DO b=1,Lb; DO c=1,Lc
+              DO ir=1,nr_meas
+                aa=mod(a-r_array(1,ir)-1+La,La)+1
+                bb=mod(b-r_array(2,ir)-1+Lb,Lb)+1
+                cc=mod(c-r_array(3,ir)-1+Lc,Lc)+1
+
+                i1=nb_ph_meas(a,b,c,k1,k)
+                i2=nb_ph_meas(a,b,c,k2,k)
+                i3=nb_ph_meas(aa,bb,cc,k3,kk)
+                i4=nb_ph_meas(aa,bb,cc,k4,kk)
+
+                ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
+                IF(flv1==flv2.and.flv3==flv4)THEN
+                  obr(ir)=obr(ir)+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obr(ir)=obr(ir)+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor
+                END IF
+
+                ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
+                IF(flv1==flv2.and.flv3==flv4)THEN
+                  obr_(ir)=obr_(ir)+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obr_(ir)=obr_(ir)+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor
+                END IF
+
+              END DO
+            END DO; END DO; END DO
+
+          END IF
+
+          IF(nrr_meas>0)THEN
+
+            DO ir=1,nrr_meas
+              a=rr_array(1,1,ir)
+              b=rr_array(2,1,ir)
+              c=rr_array(3,1,ir)
+              aa=rr_array(1,2,ir)
+              bb=rr_array(2,2,ir)
+              cc=rr_array(3,2,ir)
+
+              i1=nb_ph_meas(a,b,c,k1,k)
+              i2=nb_ph_meas(a,b,c,k2,k)
+              i3=nb_ph_meas(aa,bb,cc,k3,kk)
+              i4=nb_ph_meas(aa,bb,cc,k4,kk)
+
+              ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
+              IF(flv1==flv2.and.flv3==flv4)THEN
+                obrr(ir)=obrr(ir)+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor
+              END IF
+              IF(flv1==flv4.and.flv2==flv3)THEN
+                obrr(ir)=obrr(ir)+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor
+              END IF
+
+              ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
+              IF(flv1==flv2.and.flv3==flv4)THEN
+                obrr_(ir)=obrr_(ir)+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor
+              END IF
+              IF(flv1==flv4.and.flv2==flv3)THEN
+                obrr_(ir)=obrr_(ir)+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor
+              END IF
+
+            END DO
+
+          END IF
+
+        END DO; END DO; END DO; END DO
+
+        IF(nk_meas>0)THEN
+          obk=obk*currentphase/(La*Lb*Lc)**2
+          obk_=obk_*currentphase/(La*Lb*Lc)**2
+          CALL zput_array(nk_meas,obk)
+          CALL zput_array(nk_meas,obk_)
+          DEALLOCATE(obk,obk_)
+        END IF
+        IF(nr_meas>0)THEN
+          obr=obr*currentphase/(La*Lb*Lc)
+          obr_=obr_*currentphase/(La*Lb*Lc)
+          CALL zput_array(nr_meas,obr_)
+          CALL zput_array(nr_meas,obr_)
+          DEALLOCATE(obr,obr_)
+        END IF
+        IF(nrr_meas>0)THEN
+          obrr=obrr*currentphase
+          obrr_=obrr_*currentphase
+          CALL zput_array(nrr_meas,obrr)
+          CALL zput_array(nrr_meas,obrr_)
+          DEALLOCATE(obrr,obrr_)
+        END IF
+
+      END DO
+
+      !--------------------------------------------
+      ! crossing-PP-channel two-particle Green's functions
+      !--------------------------------------------
+
+      DO ic=1,ncross_pp_meas
+        
+        k=cross_pp_meas(1,ic)
+        kk=cross_pp_meas(2,ic)
+        d=ndim_pp_meas(k)
+        dd=ndim_pp_meas(kk)
+
+        IF(nk_meas>0)THEN
+          ALLOCATE(obk(nk_meas),obk_(nk_meas))
+          obk=0d0; obk_=0d0
+        END IF
+        IF(nr_meas>0)THEN
+          ALLOCATE(obr(nr_meas),obr_(nr_meas))
+          obr=0d0; obr_=0d0
+        END IF
+        IF(nrr_meas>0)THEN
+          ALLOCATE(obrr(nrr_meas),obrr_(nr_meas))
+          obrr=0d0; obrr_=0d0
+        END IF
+
+        DO k1=1,d; DO k2=1,d; DO k3=1,dd; DO k4=1,dd
+
+          IF(abs(fmat_pp_meas(k1,k2,k))<1d-6)CYCLE
+          IF(abs(fmat_pp_meas(k4,k3,kk))<1d-6)CYCLE
+          factor=fmat_pp_meas(k1,k2,k)*conjg(fmat_pp_meas(k4,k3,kk))
+
+          flv1=flv_pp_meas(k1,k)
+          flv2=flv_pp_meas(k2,k)
+          flv3=flv_pp_meas(k3,kk)
+          flv4=flv_pp_meas(k4,kk)
+
+          IF((.not.(flv1==flv3.and.flv2==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+
+          IF(nk_meas>0)THEN
+
+            DO a=1,La; DO b=1,Lb; DO c=1,Lc
+              DO aa=1,La; DO bb=1,Lb; DO cc=1,Lc
+                da=a-aa; db=b-bb; dc=c-cc
+
+                i1=nb_pp_meas(a,b,c,k1,k)
+                i2=nb_pp_meas(a,b,c,k2,k)
+                i3=nb_pp_meas(aa,bb,cc,k3,kk)
+                i4=nb_pp_meas(aa,bb,cc,k4,kk)
+
+                ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
+                IF(flv1==flv3.and.flv2==flv4)THEN
+                  obk=obk-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obk=obk+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
+                END IF
+
+                ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
+                IF(flv1==flv3.and.flv2==flv4)THEN
+                  obk_=obk_-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obk_=obk_+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
+                END IF
+
+              END DO; END DO; END DO
+            END DO; END DO; END DO
+
+          END IF
+
+          IF(nr_meas>0)THEN
+
+            DO a=1,La; DO b=1,Lb; DO c=1,Lc
+              DO ir=1,nr_meas
+                aa=mod(a-r_array(1,ir)-1+La,La)+1
+                bb=mod(b-r_array(2,ir)-1+Lb,Lb)+1
+                cc=mod(c-r_array(3,ir)-1+Lc,Lc)+1
+
+                i1=nb_pp_meas(a,b,c,k1,k)
+                i2=nb_pp_meas(a,b,c,k2,k)
+                i3=nb_pp_meas(aa,bb,cc,k3,kk)
+                i4=nb_pp_meas(aa,bb,cc,k4,kk)
+
+                ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
+                IF(flv1==flv3.and.flv2==flv4)THEN
+                  obr(ir)=obr(ir)-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obr(ir)=obr(ir)+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor
+                END IF
+
+                ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
+                IF(flv1==flv3.and.flv2==flv4)THEN
+                  obr_(ir)=obr_(ir)-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor
+                END IF
+                IF(flv1==flv4.and.flv2==flv3)THEN
+                  obr_(ir)=obr_(ir)+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor
+                END IF
+
+              END DO
+            END DO; END DO; END DO
+
+          END IF
+
+          IF(nrr_meas>0)THEN
+
+            DO ir=1,nrr_meas
+              a=rr_array(1,1,ir)
+              b=rr_array(2,1,ir)
+              c=rr_array(3,1,ir)
+              aa=rr_array(1,2,ir)
+              bb=rr_array(2,2,ir)
+              cc=rr_array(3,2,ir)
+
+              i1=nb_pp_meas(a,b,c,k1,k)
+              i2=nb_pp_meas(a,b,c,k2,k)
+              i3=nb_pp_meas(aa,bb,cc,k3,kk)
+              i4=nb_pp_meas(aa,bb,cc,k4,kk)
+
+              ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
+              IF(flv1==flv3.and.flv2==flv4)THEN
+                obrr(ir)=obrr(ir)-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor
+              END IF
+              IF(flv1==flv4.and.flv2==flv3)THEN
+                obrr(ir)=obrr(ir)+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor
+              END IF
+
+              ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
+              IF(flv1==flv3.and.flv2==flv4)THEN
+                obrr_(ir)=obrr_(ir)-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor
+              END IF
+              IF(flv1==flv4.and.flv2==flv3)THEN
+                obrr_(ir)=obrr_(ir)+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor
+              END IF
+
+            END DO
+
+          END IF
+
+        END DO; END DO; END DO; END DO
+
+        IF(nk_meas>0)THEN
+          obk=obk*currentphase/(La*Lb*Lc)**2
+          obk_=obk_*currentphase/(La*Lb*Lc)**2
+          CALL zput_array(nk_meas,obk)
+          CALL zput_array(nk_meas,obk_)
+          DEALLOCATE(obk,obk_)
+        END IF
+        IF(nr_meas>0)THEN
+          obr=obr*currentphase/(La*Lb*Lc)
+          obr_=obr_*currentphase/(La*Lb*Lc)
+          CALL zput_array(nr_meas,obr)
+          CALL zput_array(nr_meas,obr_)
+          DEALLOCATE(obr,obr_)
+        END IF
+        IF(nrr_meas>0)THEN
+          obrr=obrr*currentphase
+          obrr_=obrr*currentphase
+          CALL zput_array(nrr_meas,obrr)
+          CALL zput_array(nrr_meas,obrr_)
+          DEALLOCATE(obrr,obrr_)
+        END IF
+
+      END DO
+
 
     END DO
 
