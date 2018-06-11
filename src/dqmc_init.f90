@@ -3,10 +3,10 @@ SUBROUTINE init()
   USE dqmc
   IMPLICIT NONE
 
-  INTEGER i,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond
+  INTEGER i,j,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond
   INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external,ierr
   INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
-  REAL(8) re,re2,re3
+  REAL(8) re,re2,re3,re4
   COMPLEX(8) hopvalue,ga1,lam1,ga2,lam2
   REAL(8), ALLOCATABLE :: rvec(:)
 
@@ -16,7 +16,7 @@ SUBROUTINE init()
 #endif
 
 
-  OPEN(10,file='dqmc.in')
+  OPEN(10,file='dqmc.in_')
 
   !--------------------------------
   ! read in MC control parameters
@@ -138,7 +138,9 @@ SUBROUTINE init()
 
     READ(10,*) g_field(1:3,ifield)
 
-    READ(10,*) dphi(ifield),dphi_global(ifield)
+    READ(10,*) re,re2,re3,re4
+    dphi(ifield)=dcmplx(re,re2)
+    dphi_global(ifield)=dcmplx(re3,re4)
 
     SELECT CASE(type_field(ifield))
     CASE(1)
@@ -199,6 +201,7 @@ SUBROUTINE init()
         DO a=1,ndim_field(ifield)
           fmat(k,a,ifield,flv)=dcmplx(rvec(2*a-1),rvec(2*a))
         END DO
+        DEALLOCATE(rvec)
         !READ(10,*) fmat(k,1:ndim_field(ifield),ifield,flv)
       END DO
     END DO
@@ -247,7 +250,7 @@ SUBROUTINE init()
     END DO
 
     ! the only difference between these n_checkerboard boson fields is mask_field_site
-    DO i=1,n_checkerboard
+    DO i=0,n_checkerboard-1
       READ(10,*) n_cond   ! how many conditions to define this HS field
       DO k=1,n_cond
         READ(10,*) ma,moda,mb,modb,mc,modc,orb
@@ -264,6 +267,7 @@ SUBROUTINE init()
   END DO
 
   CALL set_expf()
+  CALL set_isingflip()
 
   !--------------------------------
   ! read in measurement parameters
@@ -307,13 +311,17 @@ SUBROUTINE init()
 
   !
   READ(10,*) n_ph_meas, max_ndim_ph_meas
-  ALLOCATE(ndim_ph_meas(n_ph_meas),name_ph_meas(n_ph_meas))
-  ALLOCATE(nb_ph_meas(La,Lb,Lc,max_ndim_ph_meas,n_ph_meas))
-  ALLOCATE(flv_ph_meas(max_ndim_ph_meas,n_ph_meas))
-  ALLOCATE(fmat_ph_meas(max_ndim_ph_meas,max_ndim_ph_meas,n_ph_meas))
+  IF(n_ph_meas>0)THEN
+    ALLOCATE(hartree_ph_meas(n_ph_meas),fork_ph_meas(n_ph_meas))
+    ALLOCATE(ndim_ph_meas(n_ph_meas),name_ph_meas(n_ph_meas))
+    ALLOCATE(nb_ph_meas(La,Lb,Lc,max_ndim_ph_meas,n_ph_meas))
+    ALLOCATE(flv_ph_meas(max_ndim_ph_meas,n_ph_meas))
+    ALLOCATE(fmat_ph_meas(max_ndim_ph_meas,max_ndim_ph_meas,n_ph_meas))
+  END IF
 
   !
   DO i=1,n_ph_meas
+    READ(10,*) hartree_ph_meas(i), fork_ph_meas(i)
     READ(10,*) ndim_ph_meas(i), name_ph_meas(i)
     DO k=1,ndim_ph_meas(i)
       READ(10,*) da, db, dc, orb, flv_ph_meas(k,i)
@@ -325,19 +333,29 @@ SUBROUTINE init()
       END DO; END DO; END DO
     END DO
     DO k=1,ndim_ph_meas(i)
-      READ(10,*) fmat_ph_meas(k,1:ndim_ph_meas(i),i)
+      ALLOCATE(rvec(2*ndim_ph_meas(i)))
+      READ(10,*) rvec(:)
+      DO j=1,ndim_ph_meas(i)
+        fmat_ph_meas(k,j,i)=dcmplx(rvec(2*j-1),rvec(2*j))
+      END DO
+      DEALLOCATE(rvec)
+      !READ(10,*) fmat_ph_meas(k,1:ndim_ph_meas(i),i)
     END DO
   END DO
 
   !
   READ(10,*) n_pp_meas, max_ndim_pp_meas
-  ALLOCATE(ndim_pp_meas(n_pp_meas),name_pp_meas(n_pp_meas))
-  ALLOCATE(nb_pp_meas(La,Lb,Lc,max_ndim_pp_meas,n_pp_meas))
-  ALLOCATE(flv_pp_meas(max_ndim_pp_meas,n_pp_meas))
-  ALLOCATE(fmat_pp_meas(max_ndim_pp_meas,max_ndim_pp_meas,n_pp_meas))
+  IF(n_pp_meas>0)THEN
+    ALLOCATE(fork13_pp_meas(n_pp_meas),fork14_pp_meas(n_pp_meas))
+    ALLOCATE(ndim_pp_meas(n_pp_meas),name_pp_meas(n_pp_meas))
+    ALLOCATE(nb_pp_meas(La,Lb,Lc,max_ndim_pp_meas,n_pp_meas))
+    ALLOCATE(flv_pp_meas(max_ndim_pp_meas,n_pp_meas))
+    ALLOCATE(fmat_pp_meas(max_ndim_pp_meas,max_ndim_pp_meas,n_pp_meas))
+  END IF
 
   !
   DO i=1,n_pp_meas
+    READ(10,*) fork13_pp_meas(i), fork14_pp_meas(i)
     READ(10,*) ndim_pp_meas(i), name_pp_meas(i)
     DO k=1,ndim_pp_meas(i)
       READ(10,*) da, db, dc, orb, flv_pp_meas(k,i)
@@ -349,7 +367,13 @@ SUBROUTINE init()
       END DO; END DO; END DO
     END DO
     DO k=1,ndim_pp_meas(i)
-      READ(10,*) fmat_pp_meas(k,1:ndim_pp_meas(i),i)
+      ALLOCATE(rvec(2*ndim_pp_meas(i)))
+      READ(10,*) rvec(:)
+      DO j=1,ndim_pp_meas(i)
+        fmat_pp_meas(k,j,i)=dcmplx(rvec(2*j-1),rvec(2*j))
+      END DO
+      DEALLOCATE(rvec)
+      !READ(10,*) fmat_pp_meas(k,1:ndim_pp_meas(i),i)
     END DO
   END DO
 

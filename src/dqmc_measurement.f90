@@ -124,7 +124,8 @@ SUBROUTINE measurement(time)
       flv3=flv_ph_meas(k3,k)
       flv4=flv_ph_meas(k4,k)
 
-      IF((.not.(flv1==flv2.and.flv3==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+      IF((.not.(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))).and. &
+        & (.not.(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))))CYCLE
 
       IF(nk_meas>0)THEN
 
@@ -138,10 +139,10 @@ SUBROUTINE measurement(time)
             i4=nb_ph_meas(aa,bb,cc,k4,k)
 
             ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
-            IF(flv1==flv2.and.flv3==flv4)THEN
+            IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
               obk=obk+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
               obk=obk+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
             END IF
 
@@ -164,10 +165,10 @@ SUBROUTINE measurement(time)
             i4=nb_ph_meas(aa,bb,cc,k4,k)
 
             ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
-            IF(flv1==flv2.and.flv3==flv4)THEN
+            IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
               obr(ir)=obr(ir)+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
               obr(ir)=obr(ir)+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor
             END IF
 
@@ -192,10 +193,10 @@ SUBROUTINE measurement(time)
           i4=nb_ph_meas(aa,bb,cc,k4,k)
 
           ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
-          IF(flv1==flv2.and.flv3==flv4)THEN
+          IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
             obrr(ir)=obrr(ir)+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor
           END IF
-          IF(flv1==flv4.and.flv2==flv3)THEN
+          IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
             obrr(ir)=obrr(ir)+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor
           END IF
 
@@ -253,7 +254,8 @@ SUBROUTINE measurement(time)
       flv3=flv_pp_meas(k3,k)
       flv4=flv_pp_meas(k4,k)
 
-      IF((.not.(flv1==flv3.and.flv2==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+      IF((.not.(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))).and. &
+        & (.not.(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))))CYCLE
 
       IF(nk_meas>0)THEN
 
@@ -267,10 +269,10 @@ SUBROUTINE measurement(time)
             i4=nb_pp_meas(aa,bb,cc,k4,k)
 
             ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
-            IF(flv1==flv3.and.flv2==flv4)THEN
+            IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
               obk=obk-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
               obk=obk+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
             END IF
 
@@ -293,10 +295,10 @@ SUBROUTINE measurement(time)
             i4=nb_pp_meas(aa,bb,cc,k4,k)
 
             ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
-            IF(flv1==flv3.and.flv2==flv4)THEN
+            IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
               obr(ir)=obr(ir)-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
               obr(ir)=obr(ir)+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor
             END IF
 
@@ -321,10 +323,10 @@ SUBROUTINE measurement(time)
           i4=nb_pp_meas(aa,bb,cc,k4,k)
 
           ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
-          IF(flv1==flv3.and.flv2==flv4)THEN
+          IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
             obrr(ir)=obrr(ir)-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor
           END IF
-          IF(flv1==flv4.and.flv2==flv3)THEN
+          IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
             obrr(ir)=obrr(ir)+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor
           END IF
 
@@ -387,7 +389,8 @@ SUBROUTINE measurement(time)
       flv3=flv_ph_meas(k3,kk)
       flv4=flv_ph_meas(k4,kk)
 
-      IF((.not.(flv1==flv2.and.flv3==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+      IF((.not.(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))).and. &
+        & (.not.(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))))CYCLE
 
       IF(nk_meas>0)THEN
 
@@ -401,10 +404,10 @@ SUBROUTINE measurement(time)
             i4=nb_ph_meas(aa,bb,cc,k4,kk)
 
             ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
-            IF(flv1==flv2.and.flv3==flv4)THEN
+            IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
               obk=obk+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
               obk=obk+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
             END IF
 
@@ -427,10 +430,10 @@ SUBROUTINE measurement(time)
             i4=nb_ph_meas(aa,bb,cc,k4,kk)
 
             ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
-            IF(flv1==flv2.and.flv3==flv4)THEN
+            IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
               obr(ir)=obr(ir)+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
               obr(ir)=obr(ir)+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor
             END IF
 
@@ -455,10 +458,10 @@ SUBROUTINE measurement(time)
           i4=nb_ph_meas(aa,bb,cc,k4,kk)
 
           ! c'(i1,flv1) c(i2,flv2) c'(i3,flv3) c(i4,flv4)
-          IF(flv1==flv2.and.flv3==flv4)THEN
+          IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
             obrr(ir)=obrr(ir)+g3(i2,i1,flv1)*g3(i4,i3,flv3)*factor
           END IF
-          IF(flv1==flv4.and.flv2==flv3)THEN
+          IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
             obrr(ir)=obrr(ir)+g3(i4,i1,flv1)*g2(i2,i3,flv2)*factor
           END IF
 
@@ -521,7 +524,8 @@ SUBROUTINE measurement(time)
       flv3=flv_pp_meas(k3,kk)
       flv4=flv_pp_meas(k4,kk)
 
-      IF((.not.(flv1==flv3.and.flv2==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+      IF((.not.(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))).and. &
+        & (.not.(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))))CYCLE
 
       IF(nk_meas>0)THEN
 
@@ -535,10 +539,10 @@ SUBROUTINE measurement(time)
             i4=nb_pp_meas(aa,bb,cc,k4,kk)
 
             ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
-            IF(flv1==flv3.and.flv2==flv4)THEN
+            IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
               obk=obk-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
               obk=obk+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
             END IF
 
@@ -561,10 +565,10 @@ SUBROUTINE measurement(time)
             i4=nb_pp_meas(aa,bb,cc,k4,kk)
 
             ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
-            IF(flv1==flv3.and.flv2==flv4)THEN
+            IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
               obr(ir)=obr(ir)-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor
             END IF
-            IF(flv1==flv4.and.flv2==flv3)THEN
+            IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
               obr(ir)=obr(ir)+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor
             END IF
 
@@ -589,10 +593,10 @@ SUBROUTINE measurement(time)
           i4=nb_pp_meas(aa,bb,cc,k4,kk)
 
           ! c(i1,flv1) c(i2,flv2) c'(i3,flv3) c'(i4,flv4)
-          IF(flv1==flv3.and.flv2==flv4)THEN
+          IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
             obrr(ir)=obrr(ir)-g2(i1,i3,flv1)*g2(i2,i4,flv2)*factor
           END IF
-          IF(flv1==flv4.and.flv2==flv3)THEN
+          IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
             obrr(ir)=obrr(ir)+g2(i1,i4,flv1)*g2(i2,i3,flv2)*factor
           END IF
 
@@ -844,7 +848,8 @@ SUBROUTINE measurement(time)
           flv3=flv_ph_meas(k3,k)
           flv4=flv_ph_meas(k4,k)
 
-          IF((.not.(flv1==flv2.and.flv3==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+          IF((.not.(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))).and. &
+            & (.not.(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))))CYCLE
 
           IF(nk_meas>0)THEN
 
@@ -858,18 +863,18 @@ SUBROUTINE measurement(time)
                 i4=nb_ph_meas(aa,bb,cc,k4,k)
 
                 ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obk=obk+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obk=obk+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
                 ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obk_=obk_+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obk_=obk_+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
@@ -892,18 +897,18 @@ SUBROUTINE measurement(time)
                 i4=nb_ph_meas(aa,bb,cc,k4,k)
 
                 ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obr(ir)=obr(ir)+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obr(ir)=obr(ir)+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor
                 END IF
 
                 ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obr_(ir)=obr_(ir)+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obr_(ir)=obr_(ir)+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor
                 END IF
 
@@ -928,18 +933,18 @@ SUBROUTINE measurement(time)
               i4=nb_ph_meas(aa,bb,cc,k4,k)
 
               ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
-              IF(flv1==flv2.and.flv3==flv4)THEN
+              IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                 obrr(ir)=obrr(ir)+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                 obrr(ir)=obrr(ir)+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor
               END IF
 
               ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
-              IF(flv1==flv2.and.flv3==flv4)THEN
+              IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                 obrr_(ir)=obrr_(ir)+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                 obrr_(ir)=obrr_(ir)+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor
               END IF
 
@@ -1003,7 +1008,8 @@ SUBROUTINE measurement(time)
           flv3=flv_pp_meas(k3,k)
           flv4=flv_pp_meas(k4,k)
 
-          IF((.not.(flv1==flv3.and.flv2==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+          IF((.not.(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))).and. &
+            & (.not.(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))))CYCLE
 
           IF(nk_meas>0)THEN
 
@@ -1017,18 +1023,18 @@ SUBROUTINE measurement(time)
                 i4=nb_pp_meas(aa,bb,cc,k4,k)
 
                 ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obk=obk-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obk=obk+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
                 ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obk_=obk_-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obk_=obk_+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
@@ -1051,18 +1057,18 @@ SUBROUTINE measurement(time)
                 i4=nb_pp_meas(aa,bb,cc,k4,k)
 
                 ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obr(ir)=obr(ir)-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obr(ir)=obr(ir)+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor
                 END IF
 
                 ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obr_(ir)=obr_(ir)-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obr_(ir)=obr_(ir)+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor
                 END IF
 
@@ -1087,18 +1093,18 @@ SUBROUTINE measurement(time)
               i4=nb_pp_meas(aa,bb,cc,k4,k)
 
               ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
-              IF(flv1==flv3.and.flv2==flv4)THEN
+              IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                 obrr(ir)=obrr(ir)-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                 obrr(ir)=obrr(ir)+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor
               END IF
 
               ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
-              IF(flv1==flv3.and.flv2==flv4)THEN
+              IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                 obrr_(ir)=obrr_(ir)-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                 obrr_(ir)=obrr_(ir)+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor
               END IF
 
@@ -1167,7 +1173,8 @@ SUBROUTINE measurement(time)
           flv3=flv_ph_meas(k3,kk)
           flv4=flv_ph_meas(k4,kk)
 
-          IF((.not.(flv1==flv2.and.flv3==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+          IF((.not.(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))).and. &
+            & (.not.(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))))CYCLE
 
           IF(nk_meas>0)THEN
 
@@ -1181,18 +1188,18 @@ SUBROUTINE measurement(time)
                 i4=nb_ph_meas(aa,bb,cc,k4,kk)
 
                 ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obk=obk+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obk=obk+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
                 ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obk_=obk_+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obk_=obk_+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
@@ -1215,18 +1222,18 @@ SUBROUTINE measurement(time)
                 i4=nb_ph_meas(aa,bb,cc,k4,kk)
 
                 ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obr(ir)=obr(ir)+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obr(ir)=obr(ir)+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor
                 END IF
 
                 ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv2.and.flv3==flv4)THEN
+                IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                   obr_(ir)=obr_(ir)+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                   obr_(ir)=obr_(ir)+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor
                 END IF
 
@@ -1251,18 +1258,18 @@ SUBROUTINE measurement(time)
               i4=nb_ph_meas(aa,bb,cc,k4,kk)
 
               ! < c'(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c(i4,flv4,0) >
-              IF(flv1==flv2.and.flv3==flv4)THEN
+              IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                 obrr(ir)=obrr(ir)+g3(i2,i1,flv1)*g3old(i4,i3,flv3)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                 obrr(ir)=obrr(ir)+gt3(i4,i1,flv1)*gt2(i2,i3,flv2)*factor
               END IF
 
               ! < c'(i3,flv3,t) c(i4,flv4,t) c'(i1,flv1,0) c(i2,flv2,0) >
-              IF(flv1==flv2.and.flv3==flv4)THEN
+              IF(flv1==flv2.and.flv3==flv4.and.hartree_ph_meas(k))THEN
                 obrr_(ir)=obrr_(ir)+g3old(i2,i1,flv1)*g3(i4,i3,flv3)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork_ph_meas(k))THEN
                 obrr_(ir)=obrr_(ir)+gt2(i4,i1,flv1)*gt3(i2,i3,flv2)*factor
               END IF
 
@@ -1331,7 +1338,8 @@ SUBROUTINE measurement(time)
           flv3=flv_pp_meas(k3,kk)
           flv4=flv_pp_meas(k4,kk)
 
-          IF((.not.(flv1==flv3.and.flv2==flv4)).and.(.not.(flv1==flv4.and.flv2==flv3)))CYCLE
+          IF((.not.(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))).and. &
+            & (.not.(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))))CYCLE
 
           IF(nk_meas>0)THEN
 
@@ -1345,18 +1353,18 @@ SUBROUTINE measurement(time)
                 i4=nb_pp_meas(aa,bb,cc,k4,kk)
 
                 ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obk=obk-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obk=obk+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
                 ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obk_=obk_-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obk_=obk_+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor*expikr_array(:,da,db,dc)
                 END IF
 
@@ -1379,18 +1387,18 @@ SUBROUTINE measurement(time)
                 i4=nb_pp_meas(aa,bb,cc,k4,kk)
 
                 ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obr(ir)=obr(ir)-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obr(ir)=obr(ir)+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor
                 END IF
 
                 ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
-                IF(flv1==flv3.and.flv2==flv4)THEN
+                IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                   obr_(ir)=obr_(ir)-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor
                 END IF
-                IF(flv1==flv4.and.flv2==flv3)THEN
+                IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                   obr_(ir)=obr_(ir)+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor
                 END IF
 
@@ -1415,18 +1423,18 @@ SUBROUTINE measurement(time)
               i4=nb_pp_meas(aa,bb,cc,k4,kk)
 
               ! < c(i1,flv1,t) c(i2,flv2,t) c'(i3,flv3,0) c'(i4,flv4,0) >
-              IF(flv1==flv3.and.flv2==flv4)THEN
+              IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                 obrr(ir)=obrr(ir)-gt2(i1,i3,flv1)*gt2(i2,i4,flv2)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                 obrr(ir)=obrr(ir)+gt2(i1,i4,flv1)*gt2(i2,i3,flv2)*factor
               END IF
 
               ! < c'(i3,flv3,t) c'(i4,flv4,t) c(i1,flv1,0) c(i2,flv2,0) >
-              IF(flv1==flv3.and.flv2==flv4)THEN
+              IF(flv1==flv3.and.flv2==flv4.and.fork13_pp_meas(k))THEN
                 obrr_(ir)=obrr_(ir)-gt3(i1,i3,flv1)*gt3(i2,i4,flv2)*factor
               END IF
-              IF(flv1==flv4.and.flv2==flv3)THEN
+              IF(flv1==flv4.and.flv2==flv3.and.fork14_pp_meas(k))THEN
                 obrr_(ir)=obrr_(ir)+gt3(i1,i4,flv1)*gt3(i2,i3,flv2)*factor
               END IF
 

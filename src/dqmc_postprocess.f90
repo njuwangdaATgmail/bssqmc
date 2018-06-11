@@ -24,33 +24,33 @@ SUBROUTINE postprocess()
   !---------------------------------------------
 
   IF(nk_meas>0)THEN
-    ALLOCATE(obk4(nk_meas,norb,norb,nflv,2*ntau_meas+1))
-    ALLOCATE(obk4_err(nk_meas,norb,norb,nflv,2*ntau_meas+1))
+    ALLOCATE(obk4(nk_meas,norb,norb,nflv,-ntau_meas:ntau_meas))
+    ALLOCATE(obk4_err(nk_meas,norb,norb,nflv,-ntau_meas:ntau_meas))
     CALL zget_array_err(nk_meas*norb*norb*nflv,obk4(:,:,:,:,0),obk4_err(:,:,:,:,0))
-    IF(n_ph_meas>0) ALLOCATE(obk_ph(nk_meas,n_ph_meas+ncross_ph_meas,2*ntau_meas+1), &
-      &                  obk_ph_err(nk_meas,n_ph_meas+ncross_ph_meas,2*ntau_meas+1))
-    IF(n_pp_meas>0) ALLOCATE(obk_pp(nk_meas,n_pp_meas+ncross_pp_meas,2*ntau_meas+1), &
-      &                  obk_pp_err(nk_meas,n_pp_meas+ncross_pp_meas,2*ntau_meas+1))
+    IF(n_ph_meas>0) ALLOCATE(obk_ph(nk_meas,n_ph_meas+ncross_ph_meas,-ntau_meas:ntau_meas), &
+      &                  obk_ph_err(nk_meas,n_ph_meas+ncross_ph_meas,-ntau_meas:ntau_meas))
+    IF(n_pp_meas>0) ALLOCATE(obk_pp(nk_meas,n_pp_meas+ncross_pp_meas,-ntau_meas:ntau_meas), &
+      &                  obk_pp_err(nk_meas,n_pp_meas+ncross_pp_meas,-ntau_meas:ntau_meas))
   END IF
 
   IF(nr_meas>0)THEN
-    ALLOCATE(obr4(nr_meas,norb,norb,nflv,2*ntau_meas+1))
-    ALLOCATE(obr4_err(nr_meas,norb,norb,nflv,2*ntau_meas+1))
+    ALLOCATE(obr4(nr_meas,norb,norb,nflv,-ntau_meas:ntau_meas))
+    ALLOCATE(obr4_err(nr_meas,norb,norb,nflv,-ntau_meas:ntau_meas))
     CALL zget_array_err(nr_meas*norb*norb*nflv,obr4(:,:,:,:,0),obr4_err(:,:,:,:,0))
-    IF(n_ph_meas>0) ALLOCATE(obr_ph(nr_meas,n_ph_meas+ncross_ph_meas,2*ntau_meas+1), &
-      &                  obr_ph_err(nr_meas,n_ph_meas+ncross_ph_meas,2*ntau_meas+1))
-    IF(n_pp_meas>0) ALLOCATE(obr_pp(nr_meas,n_pp_meas+ncross_pp_meas,2*ntau_meas+1), &
-      &                  obr_pp_err(nr_meas,n_pp_meas+ncross_pp_meas,2*ntau_meas+1))
+    IF(n_ph_meas>0) ALLOCATE(obr_ph(nr_meas,n_ph_meas+ncross_ph_meas,-ntau_meas:ntau_meas), &
+      &                  obr_ph_err(nr_meas,n_ph_meas+ncross_ph_meas,-ntau_meas:ntau_meas))
+    IF(n_pp_meas>0) ALLOCATE(obr_pp(nr_meas,n_pp_meas+ncross_pp_meas,-ntau_meas:ntau_meas), &
+      &                  obr_pp_err(nr_meas,n_pp_meas+ncross_pp_meas,-ntau_meas:ntau_meas))
   END IF
 
   IF(nrr_meas>0)THEN
-    ALLOCATE(obrr4(nrr_meas,norb,norb,nflv,2*ntau_meas+1))
-    ALLOCATE(obrr4_err(nrr_meas,norb,norb,nflv,2*ntau_meas+1))
+    ALLOCATE(obrr4(nrr_meas,norb,norb,nflv,-ntau_meas:ntau_meas))
+    ALLOCATE(obrr4_err(nrr_meas,norb,norb,nflv,-ntau_meas:ntau_meas))
     CALL zget_array_err(nrr_meas*norb*norb*nflv,obrr4(:,:,:,:,0),obrr4_err(:,:,:,:,0))
-    IF(n_ph_meas>0) ALLOCATE(obrr_ph(nrr_meas,n_ph_meas+ncross_ph_meas,2*ntau_meas+1), &
-      &                  obrr_ph_err(nrr_meas,n_ph_meas+ncross_ph_meas,2*ntau_meas+1))
-    IF(n_pp_meas>0) ALLOCATE(obrr_pp(nrr_meas,n_pp_meas+ncross_pp_meas,2*ntau_meas+1), &
-      &                  obrr_pp_err(nrr_meas,n_pp_meas+ncross_pp_meas,2*ntau_meas+1))
+    IF(n_ph_meas>0) ALLOCATE(obrr_ph(nrr_meas,n_ph_meas+ncross_ph_meas,-ntau_meas:ntau_meas), &
+      &                  obrr_ph_err(nrr_meas,n_ph_meas+ncross_ph_meas,-ntau_meas:ntau_meas))
+    IF(n_pp_meas>0) ALLOCATE(obrr_pp(nrr_meas,n_pp_meas+ncross_pp_meas,-ntau_meas:ntau_meas), &
+      &                  obrr_pp_err(nrr_meas,n_pp_meas+ncross_pp_meas,-ntau_meas:ntau_meas))
   END IF
 
   DO k=1,n_ph_meas
