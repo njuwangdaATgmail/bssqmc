@@ -36,6 +36,9 @@ MODULE dqmc
   ! number of fermion flavors
   !INTEGER nflv ! already defined in dqmc_core
 
+  ! number of copies of the flavor
+  INTEGER, ALLOCATABLE :: ncopy(:)
+
   ! lattice size
   INTEGER La, Lb, Lc
 
@@ -484,7 +487,7 @@ SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
     ! NOTICE f0 has been absorbed into the definition of gamma_ising
     rtot=gamma_ising(nint(real(newfield)),ifield)/gamma_ising(nint(real(oldfield)),ifield)
     DO flv=1,nflv
-      rtot=rtot*ratio(flv)
+      rtot=rtot*ratio(flv)**ncopy(flv)
     END DO
   ELSEIF(type_field(ifield)==-1)THEN
     ! continuous HS field
@@ -492,7 +495,7 @@ SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
     f0=g_field(2,ifield)
     rtot=exp(-gph_x2*(newfield**2-oldfield**2)-f0*(newfield-oldfield))
     DO flv=1,nflv
-      rtot=rtot*ratio(flv)
+      rtot=rtot*ratio(flv)**ncopy(flv)
     END DO
   ELSEIF(type_field(ifield)==-2)THEN
     ! local phonon field
@@ -507,7 +510,7 @@ SUBROUTINE acceptprob_local(ratio,newfield,site,time,ifield,rtot)
     diffold=oldfield-field(site,mod(time-2+ntime,ntime)+1,ifield)
     rtot=rtot*exp(-gph_p2*(diffnew**2-diffold**2)) ! kinetic energy on (time,time-1)
     DO flv=1,nflv
-      rtot=rtot*ratio(flv)
+      rtot=rtot*ratio(flv)**ncopy(flv)
     END DO
   ELSEIF(abs(type_field(ifield))>=100)THEN
     CALL acceptprob_local_external(ratio,newfield,site,time,ifield,rtot)
@@ -569,7 +572,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       END DO
     END DO
     DO flv=1,nflv
-      rtot=rtot*ratio(flv)
+      rtot=rtot*ratio(flv)**ncopy(flv)
     END DO
   ELSEIF(type_field(ifield)==-1)THEN
     ! continuous HS field
@@ -584,7 +587,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       END DO
     END DO
     DO flv=1,nflv
-      rtot=rtot*ratio(flv)
+      rtot=rtot*ratio(flv)**ncopy(flv)
     END DO
   ELSEIF(type_field(ifield)==-2)THEN
     ! local phonon field
@@ -603,7 +606,7 @@ SUBROUTINE acceptprob_global(ratio,newfield,ifield,rtot)
       END DO
     END DO
     DO flv=1,nflv
-      rtot=rtot*ratio(flv)
+      rtot=rtot*ratio(flv)**ncopy(flv)
     END DO
   ELSEIF(abs(type_field(ifield))>=100)THEN
     CALL acceptprob_global_external(ratio,newfield,ifield,rtot)

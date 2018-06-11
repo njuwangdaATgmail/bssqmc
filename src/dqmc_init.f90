@@ -8,6 +8,7 @@ SUBROUTINE init()
   INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
   REAL(8) re,re2,re3
   COMPLEX(8) hopvalue,ga1,lam1,ga2,lam2
+  REAL(8), ALLOCATABLE :: rvec(:)
 
   IF(id==0) CALL regular_input()
 #ifdef MPI
@@ -24,6 +25,8 @@ SUBROUTINE init()
   READ(10,*) restart
   READ(10,*) proj
   READ(10,*) nflv
+  ALLOCATE(ncopy(nflv))
+  READ(10,*) ncopy(:)
   READ(10,*) beta
   READ(10,*) dtau
 
@@ -82,9 +85,9 @@ SUBROUTINE init()
 
   READ(10,*) nhop
   DO i=1,nhop
-    READ(10,*) da,db,dc,orb,orb2,hopvalue
-    hop(da,db,dc,orb,orb2,:)=hopvalue
-    hop(-da,-db,-dc,orb2,orb,:)=conjg(hopvalue)
+    READ(10,*) da,db,dc,orb,orb2,re,re2
+    hop(da,db,dc,orb,orb2,:)=dcmplx(re,re2)
+    hop(-da,-db,-dc,orb2,orb,:)=dcmplx(re,-re2)
   END DO
 
   ALLOCATE(kmat(nsite,nsite,nflv))
@@ -133,10 +136,13 @@ SUBROUTINE init()
 
     READ(10,*) type_field(ifield), n_checkerboard
 
+    READ(10,*) g_field(1:3,ifield)
+
+    READ(10,*) dphi(ifield),dphi_global(ifield)
+
     SELECT CASE(type_field(ifield))
     CASE(1)
 
-      READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
       isingmax(ifield)=2
       CALL HS1(ga1,lam1,exp(-dtau*g_field(1,ifield)/2))
@@ -145,7 +151,6 @@ SUBROUTINE init()
 
     CASE(2)
 
-      READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
       isingmax(ifield)=4
       CALL HS2(ga1,lam1,ga2,lam2,exp(-dtau*g_field(1,ifield)/2))
@@ -155,7 +160,6 @@ SUBROUTINE init()
 
     CASE(3)
 
-      READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
       isingmax(ifield)=4
       CALL HSgeneral(ga1,lam1,ga2,lam2,-dtau*g_field(1,ifield)/2)
@@ -163,26 +167,15 @@ SUBROUTINE init()
       gamma_ising(1:4,ifield)=(/ga1*exp(-lam1*g_field(2,ifield)),ga1*exp(lam1*g_field(2,ifield)), &
         &                       ga2*exp(-lam2*g_field(2,ifield)),ga2*exp(lam2*g_field(2,ifield))/)
 
-    CASE(-1)
+    CASE(-2:-1)
 
-      READ(10,*) g_field(1:2,ifield)
       IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
-      READ(10,*) dphi(ifield), dphi_global(ifield)
-
-    CASE(-2)
-
-      ! Vph, f0, debye
-      READ(10,*) g_field(1:3,ifield)
-      IF(abs(g_field(1,ifield))>1d-6) mask_field(ifield)=.true.
-      READ(10,*) dphi(ifield), dphi_global(ifield)
 
     CASE(100:)
 
-      READ(10,*) isingmax(ifield)
       CALL set_field_external(ifield)
 
     CASE(:-100)
-      READ(10,*) dphi(ifield), dphi_global(ifield)
       CALL set_field_external(ifield)
 
     CASE default
@@ -201,14 +194,21 @@ SUBROUTINE init()
     ! read in fmat
     DO flv=1,nflv
       DO k=1,ndim_field(ifield)
-        READ(10,*) fmat(k,1:ndim_field(ifield),ifield,flv)
+        ALLOCATE(rvec(2*ndim_field(ifield)))
+        READ(10,*) rvec
+        DO a=1,ndim_field(ifield)
+          fmat(k,a,ifield,flv)=dcmplx(rvec(2*a-1),rvec(2*a))
+        END DO
+        !READ(10,*) fmat(k,1:ndim_field(ifield),ifield,flv)
       END DO
     END DO
 
     ! read in the subspace
     DO k=1,ndim_field(ifield)
-      READ(10,*) da,db,dc,orb,orb2
-      DO a=1,La; DO b=1,Lb; DO c=1,Lc; i=label(da,db,dc,orb)
+      READ(10,*) da,db,dc,orb2
+      IF(k==1) orb=orb2  ! the first site is used as the representative site
+                         ! i.e. where the boson field lives/is defined at
+      DO a=1,La; DO b=1,Lb; DO c=1,Lc; i=label(a,b,c,orb)
         a2=a+da; b2=b+db; c2=c+dc
 
         IF(a2<1 .and.(.not.pbca)) CYCLE
@@ -324,10 +324,8 @@ SUBROUTINE init()
         nb_ph_meas(a,b,c,k,i)=label(a2,b2,c2,orb)
       END DO; END DO; END DO
     END DO
-    DO flv=1,nflv
-      DO k=1,ndim_ph_meas(i)
-        READ(10,*) fmat_ph_meas(k,1:ndim_ph_meas(i),i)
-      END DO
+    DO k=1,ndim_ph_meas(i)
+      READ(10,*) fmat_ph_meas(k,1:ndim_ph_meas(i),i)
     END DO
   END DO
 
@@ -350,10 +348,8 @@ SUBROUTINE init()
         nb_pp_meas(a,b,c,k,i)=label(a2,b2,c2,orb)
       END DO; END DO; END DO
     END DO
-    DO flv=1,nflv
-      DO k=1,ndim_pp_meas(i)
-        READ(10,*) fmat_pp_meas(k,1:ndim_pp_meas(i),i)
-      END DO
+    DO k=1,ndim_pp_meas(i)
+      READ(10,*) fmat_pp_meas(k,1:ndim_pp_meas(i),i)
     END DO
   END DO
 
