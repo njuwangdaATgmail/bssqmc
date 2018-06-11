@@ -1,110 +1,89 @@
-#---------------------------
-# Monte Carlo control block
-#---------------------------
-f         :restart
-f         :proj
-2         :nflv
-4d0      :beta
-0.1     :dtau
-10       :nsp
-1       :nbin
-10000     :nwarmup
-20000     :nmeasure
-1         :ninterval
-100      :ntmpout
-10       :nscratch
-10       :ngroup
-223703     :randomseed
-0.0d0    :newMetro
-
-#-----------------------
-# fermion lattice block
-#-----------------------
-1       :norb
-4   4  1   :La, Lb, Lc
-8          :nelec
-t   t  f   :pbca, pbcb, pbcc
-0d0 0d0 0d0  :twista,twistb,twistc
-
-1d0 0d0 0d0  :a0r
-0d0 1d0 0d0  :b0r
-0d0 0d0 1d0  :c0r
-
-0d0 0d0 0d0  :rorb(:,1:norb)
-
-1   1   0  :cuta,cutb,cutc, hopping range
-2         :# of nonzero hopping elements
-1 0 0 1 1 -1d0 0d0   :hop(da,db,orb1,orb2)
-0 1 0 1 1 -1d0 0d0
-
-#-----------------------
-# boson field block
-#-----------------------
-! n_g, nfield, max_ndim_field, max_isingmax
-
-! type_field, n_checkerboard
-
-! if |type_field|<100, read g_field
-
-! if type_field<0, read dphi, dphi_global
-
-! if type_field>=100, read isingmax
-
-! if |type_field|>=100, user-defined
-
-! ninterval_global global_method
-
-! ndim_field
-
-! fmat
-
-! subspace: da,db,dc,orb2
-
-! mask_field_site
-
-
-#-----------------------
-# measurement block
-#-----------------------
-! nk_meas
-! k_array
-
-! nr_meas
-! r_meas
-
-! nrr_meas
-! rr_meas
-
-! ntau_meas
-
-! n_ph_meas, max_ndim_ph_meas
-
-! for i=1,n_ph_meas
-! ndim_ph_meas(i), name_ph_meas(i)
-! da_ph_meas(i), db_ph_meas(i), dc_ph_meas(i), orb_ph_meas(i)
-! fmat_ph_meas(:,:,1,i)
-! ...
-! fmat_ph_meas(:,:,nflv,i)
-
-! n_pp_meas, max_ndim_pp_meas
-
-! for i=1,n_pp_meas
-! ndim_pp_meas(i), name_pp_meas(i)
-! da_pp_meas(i), db_pp_meas(i), dc_pp_meas(i), orb_pp_meas(i)
-! fmat_pp_meas(:,:,1,i)
-! ...
-! fmat_pp_meas(:,:,nflv,i)
-
-! ncross_ph_meas
-! cross_ph_meas(1:2,i)
-
-! ncross_pp_meas
-! cross_pp_meas(1:2,i)
-
-! FAtech
-
-! meas_external, n_meas_external
-
-! tmpout_external
-
-! output_external
+ #----------------------------
+ # Monte Carlo control block
+ #----------------------------
+                                       F          :restart
+                                       F          :proj
+                                       1          :nflv
+                                       2          :ncopy
+                                8.000000          :beta
+                                0.100000          :dtau
+                                      10          :nsp
+                                      10          :nbin
+                                    1000          :nwarmup
+                                    1000          :nmeasure
+                                       1          :ninterval
+                                     100          :ntmpout
+                                      10          :nscratch
+                                      10          :ngroup
+                                  223703          :randomseed
+                                0.000000          :newMetro
+ #----------------------------
+ # Monte Carlo control block
+ #----------------------------
+                                       1          :norb
+                   4         4         1          :La,Lb,Lc
+                                       8          :nelec
+                   T         T         F          :pbca,pbcb,pbcc
+            0.000000  0.000000  0.000000          :twista,twistb,twistc in unit of 2pi
+            1.000000  0.000000  0.000000          :a0r
+            0.000000  1.000000  0.000000          :b0r
+            0.000000  0.000000  1.000000          :c0r
+            0.000000  0.000000  0.000000          :rorb- 1
+                   1         1         0          :cuta,cutb,cutc
+                                       2          :nhop
+   1   0   0   1   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   1   0   1   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+ #----------------------------
+ # boson field block
+ #----------------------------
+               1       1       1       2          :n_g,nfield,max_ndim_field,max_isingmax
+                             1         1          :type_field, n_checkerboard
+            4.000000  1.000000  0.000000          :g_field
+  0.000000  0.000000  0.000000  0.000000          :dphi, dphi_global
+                      10000000         0          :ninterval_global, global_method
+                                       1          :ndim_field
+    1.000000    0.000000
+         0         0         0         1
+                                       1          :n_cond
+         1         0         1         0         1         0         1
+ #----------------------------
+ # measurement block
+ #----------------------------
+                                       2          :nk_meas
+                   0         0         0
+                   2         2         0
+                                       4          :nr_meas
+                   0         0         0
+                   1         1         0
+                   2         2         0
+                   3         3         0
+                                       0          :nrr_meas
+                                      10          :ntau_meas
+                             3         1          :n_ph_meas,max_ndim_ph_meas
+                             T         F          :hartree_ph_meas,fork_ph_meas
+                   1             doublon          :ndim_ph_meas, name_ph_meas
+ ! for each basis, da,db,dc,orb,flv are given below
+         0         0         0         1         1
+    1.000000    0.000000
+                             F         T          :hartree_ph_meas,fork_ph_meas
+                   1            spinspin          :ndim_ph_meas, name_ph_meas
+ ! for each basis, da,db,dc,orb,flv are given below
+         0         0         0         1         1
+    1.000000    0.000000
+                             T         T          :hartree_ph_meas,fork_ph_meas
+                   1        chargecharge          :ndim_ph_meas, name_ph_meas
+ ! for each basis, da,db,dc,orb,flv are given below
+         0         0         0         1         1
+    1.000000    0.000000
+                             1         1          :n_pp_meas,max_ndim_pp_meas
+                             F         T          :fork13_pp_meas,fork14_pp_meas
+                   1            pairpair          :ndim_pp_meas, name_pp_meas
+ ! for each basis, da,db,dc,orb,flv are given below
+         0         0         0         1         1
+    1.000000    0.000000
+                             0                    :ncross_ph_meas
+                             0                    :ncross_pp_meas
+                                       F          :FAtech
+                             F         0          :do_measurement_external, n_meas_external
+                                       F          :do_tmpout_external
+                                       F          :do_postprocess_external
