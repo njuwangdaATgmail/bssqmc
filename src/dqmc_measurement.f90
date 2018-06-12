@@ -9,6 +9,7 @@ SUBROUTINE measurement(time)
   INTEGER, INTENT(IN) :: time
   INTEGER i,j,k,flv,a,b,c,orb,a2,b2,c2,orb2,aa,bb,cc,da,db,dc,d,ir,p,tau,kk,dd,ic
   INTEGER i1,i2,i3,i4,k1,k2,k3,k4,flv1,flv2,flv3,flv4
+  REAL(8) err_fast_save
   COMPLEX(8) kinetic,factor,g2(nsite,nsite,nflv),g3(nsite,nsite,nflv)
   COMPLEX(8), ALLOCATABLE :: ob4(:,:,:,:),obk(:),obr(:),obrr(:)
   COMPLEX(8), ALLOCATABLE :: ob4_(:,:,:,:),obk_(:),obr_(:),obrr_(:)
@@ -678,7 +679,9 @@ SUBROUTINE measurement(time)
         END DO
 
         IF(mod(tau,ngroup)==0)THEN
+          err_fast_save=err_fast
           CALL update_scratch_T0_(p+1)
+          err_fast=err_fast_save
           DO flv=1,nflv
             g2(:,:,flv)=matmul(inv_expk_half(:,:,flv),matmul(g(:,:,flv),expk_half(:,:,flv)))
             g3(:,:,flv)=-g2(:,:,flv)
@@ -718,11 +721,13 @@ SUBROUTINE measurement(time)
 
         ! get < c'(t) c(t) > stored in g3
         IF(mod(tau,ngroup)==0)THEN
+          err_fast_save=err_fast
           IF(proj)THEN
             CALL update_scratch_T0_(p+1)
           ELSE
             CALL update_scratch_(mod(p,ntime)+1)  ! NOTICE: DO NOT change Bstring!
           END IF
+          err_fast=err_fast_save
           DO flv=1,nflv
             g3(:,:,flv)=-matmul(inv_expk_half(:,:,flv),matmul(g(:,:,flv),expk_half(:,:,flv)))
             DO i=1,nsite

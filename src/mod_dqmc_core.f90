@@ -151,6 +151,9 @@ MODULE dqmc_core
   ! total number of all nodes
   INTEGER :: nd                     = 1
 
+  ! difference between scratch and fast-update
+  REAL(8) :: err_fast      = 0d0
+
   !---------------------------------
   ! public arrays
   !--------------------------------
@@ -200,9 +203,6 @@ MODULE dqmc_core
   !--------------------------------
   ! private scaler variables
   !--------------------------------
-
-  ! difference between scratch and fast-update
-  REAL(8), PRIVATE :: err_fast      = 0d0
 
   ! used to save starting time, in order to obtain running time
   REAL(8), PRIVATE :: t0            = maxexponent(1d0)
