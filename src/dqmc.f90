@@ -341,16 +341,17 @@ CONTAINS
       PRINT*,'expk_half has not been correctly set. It is required for 2nd-order Trotter.'
       CALL exit(0)
     END IF
-    IF(.not.allocated(slater))ALLOCATE(slater(nsite,nelec,nflv))
-    IF(.not.allocated(slater_Q))ALLOCATE(slater_Q(nsite,nelec,nflv))
-    IF(.not.allocated(slater_D))ALLOCATE(slater_D(nelec,nflv))
-    IF(.not.allocated(slater_R))ALLOCATE(slater_R(nelec,nelec,nflv))
+    IF(.not.allocated(slater))ALLOCATE(slater(nsite,maxval(nelec),nflv))
+    IF(.not.allocated(slater_Q))ALLOCATE(slater_Q(nsite,maxval(nelec),nflv))
+    IF(.not.allocated(slater_D))ALLOCATE(slater_D(maxval(nelec),nflv))
+    IF(.not.allocated(slater_R))ALLOCATE(slater_R(maxval(nelec),maxval(nelec),nflv))
     DO flv=1,nflv
       CALL eigen(nsite,kmat(:,:,flv),eval)
-      slater(:,:,flv)=kmat(:,1:nelec,flv)
-      slater(:,:,flv)=matmul(expk_half(:,:,flv),slater(:,:,flv))
-      slater_Q(:,:,flv)=slater(:,:,flv)
-      CALL qdr(nsite,nelec,slater_Q(:,:,flv),slater_R(:,:,flv),slater_D(:,flv))
+      slater(:,1:nelec(flv),flv)=kmat(:,1:nelec(flv),flv)
+      slater(:,1:nelec(flv),flv)=matmul(expk_half(:,:,flv),slater(:,1:nelec(flv),flv))
+      slater_Q(:,1:nelec(flv),flv)=slater(:,1:nelec(flv),flv)
+      CALL qdr(nsite,nelec(flv),slater_Q(:,1:nelec(flv),flv),slater_R(1:nelec(flv),1:nelec(flv),flv), &
+        & slater_D(1:nelec(flv),flv))
     END DO
   END SUBROUTINE
 
@@ -415,10 +416,9 @@ CONTAINS
       DO flv=1,nflv
 
         ! set fmat_U and fmat_expE
-        fmat_U(1:d,1:d,ifield,flv)=fmat_U(1:d,1:d,ifield,flv)
+        fmat_U(1:d,1:d,ifield,flv)=fmat(1:d,1:d,ifield,flv)
         CALL eigen(d,fmat_U(1:d,1:d,ifield,flv),fmat_expE(1:d,ifield,flv))
         fmat_expE(1:d,ifield,flv)=exp(fmat_expE(1:d,ifield,flv))
-
 
         ! set expf(lam*fmat) and expf(-lam*fmat)
         DO s=1,z

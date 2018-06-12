@@ -4,15 +4,15 @@ f         :proj
 4d0      :beta
 0.1     :dtau
 10       :nsp
-1       :nbin
-10000     :nwarmup
-20000     :nmeasure
+10       :nbin
+1000     :nwarmup
+1000     :nmeasure
 1         :ninterval
 10000000 1  : nglobal_ising, nglobal_phi
 100      :ntmpout
 10       :nscratch
 10       :ngroup
-52501     :randomseed
+12321     :randomseed
 0.0d0    :newMetro
 
 1       :norb
@@ -27,7 +27,7 @@ t   t  f   :pbca, pbcb, pbcc
 
 0d0 0d0 0d0  :rorb(:,1:norb)
 
-4d0   4d0   1d0      :U,Vph,debye
+4d0   0d0   1d0      :U,Vph,debye
 0.2          :dphi
 0.1d0       :dphi_global
 

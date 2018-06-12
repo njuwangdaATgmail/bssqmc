@@ -7,4 +7,5 @@ SUBROUTINE tmpout()
   USE dqmc
   IMPLICIT NONE
   IF(do_tmpout_external) CALL tmpout_external()
+  print'(4f8.2)',real(field(1:4,1,1))
 END SUBROUTINE

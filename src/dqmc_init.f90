@@ -25,8 +25,6 @@ SUBROUTINE init()
   READ(10,*) restart
   READ(10,*) proj
   READ(10,*) nflv
-  ALLOCATE(ncopy(nflv))
-  READ(10,*) ncopy(:)
   READ(10,*) beta
   READ(10,*) dtau
 
@@ -65,7 +63,10 @@ SUBROUTINE init()
 
   READ(10,*) norb
   READ(10,*) La,Lb,Lc; nsite=La*Lb*Lc*norb
-  READ(10,*) nelec
+  ALLOCATE(nelec(nflv))
+  READ(10,*) nelec(:)
+  ALLOCATE(ncopy(nflv))
+  READ(10,*) ncopy(:)
   READ(10,*) pbca,pbcb,pbcc
   IF(La<=2)pbca=.false.
   IF(Lb<=2)pbcb=.false.

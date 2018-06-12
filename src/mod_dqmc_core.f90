@@ -12,7 +12,7 @@
 !   LOGICAL proj
 !   INTEGER nflv
 !   INTEGER nsite
-!   INTEGER nelec
+!   INTEGER nelec(:)
 !   INTEGER ntime
 !   INTEGER nsp
 !   INTEGER nbin
@@ -105,9 +105,6 @@ MODULE dqmc_core
   ! number of sites
   INTEGER :: nsite                  = -1
 
-  ! number of filled electrons, only used for T=0
-  INTEGER :: nelec                  = -1
-
   ! number of time slices
   INTEGER :: ntime                  = -1
 
@@ -158,15 +155,18 @@ MODULE dqmc_core
   ! public arrays
   !--------------------------------
 
+  ! number of filled electrons, only used for T=0
+  INTEGER, ALLOCATABLE :: nelec(:)
+
   ! exp(-dtau*K), exp(-dtau*K/2), exp(dtau*K), exp(dtau*K/2)
   ! dimension (nsite, nsite, nflv)
   COMPLEX(8), ALLOCATABLE :: expk(:,:,:), expk_half(:,:,:), inv_expk(:,:,:), inv_expk_half(:,:,:)
 
   ! trial wave function and its QDR decomposition
   ! slater = slater_Q * slater_D *slater_R
-  ! dimension (nsite, nelec, nflv) for slater and slater_Q
-  ! dimension (nelec, nflv) for slater_D
-  ! dimension (nelec, nelec, nflv) for slater_R
+  ! dimension (nsite, maxval(nelec), nflv) for slater and slater_Q
+  ! dimension (maxval(nelec), nflv) for slater_D
+  ! dimension (maxval(nelec), maxval(nelec), nflv) for slater_R
   COMPLEX(8), ALLOCATABLE :: slater(:,:,:), slater_Q(:,:,:), slater_D(:,:), slater_R(:,:,:)
 
   ! equal-time Green's function
@@ -221,9 +221,9 @@ MODULE dqmc_core
   !----------------------------------
 
   ! string of B*B*...*B, see update_scratch() for details
-  ! dimension (nsite, nsite/nelec, nblock, nflv) for Bstring_Q
-  ! dimension (nsite/nelec, nblock, nflv) for Bstring_D
-  ! dimension (nsite/nelec, nsite/nelec, nblock, nflv) for Bstring_T
+  ! dimension (nsite, nsite/maxval(nelec), nblock, nflv) for Bstring_Q
+  ! dimension (nsite/maxval(nelec), nblock, nflv) for Bstring_D
+  ! dimension (nsite/maxval(nelec), nsite/maxval(nelec), nblock, nflv) for Bstring_T
   COMPLEX(8), ALLOCATABLE, PRIVATE :: Bstring_Q(:,:,:,:), Bstring_D(:,:,:), Bstring_T(:,:,:,:)
 
   ! total number of trials
@@ -366,7 +366,8 @@ CONTAINS
     nblock=ntime/nscratch
     IF(mod(ntime,nscratch).ne.0) nblock=nblock+1
     IF(proj)THEN
-      ALLOCATE(Bstring_Q(nsite,nelec,nblock,nflv),Bstring_D(nelec,nblock,nflv),Bstring_T(nelec,nelec,nblock,nflv))
+      ALLOCATE(Bstring_Q(nsite,maxval(nelec),nblock,nflv),Bstring_D(maxval(nelec),nblock,nflv), &
+        & Bstring_T(maxval(nelec),maxval(nelec),nblock,nflv))
     ELSE
       ALLOCATE(Bstring_Q(nsite,nsite,nblock,nflv),Bstring_D(nsite,nblock,nflv),Bstring_T(nsite,nsite,nblock,nflv))
     END IF
@@ -618,7 +619,7 @@ CONTAINS
     ! calculate old determinant from scratch
     IF(proj)THEN
       CALL update_scratch_T0(1)
-      ALLOCATE(dvec(nelec,nflv),dvec_old(nelec,nflv))
+      ALLOCATE(dvec(maxval(nelec),nflv),dvec_old(maxval(nelec),nflv))
     ELSE
       CALL update_scratch(1)
       ALLOCATE(dvec(nsite,nflv),dvec_old(nsite,nflv))
@@ -629,9 +630,9 @@ CONTAINS
 
       IF(proj)THEN
 
-        ratio(flv)=1d0/det(nelec,Bstring_Q(1:nelec,1:nelec,1,flv))
-        dvec_old(1:nelec,flv)=Bstring_D(1:nelec,1,flv)
-        CALL sort_(nelec,dvec_old(1:nelec,flv))
+        ratio(flv)=1d0/det(nelec(flv),Bstring_Q(1:nelec(flv),1:nelec(flv),1,flv))
+        dvec_old(1:nelec(flv),flv)=Bstring_D(1:nelec(flv),1,flv)
+        CALL sort_(nelec(flv),dvec_old(1:nelec(flv),flv))
 
       ELSE
 
@@ -661,11 +662,11 @@ CONTAINS
 
       IF(proj)THEN
 
-        ratio(flv)=ratio(flv)*det(nelec,Bstring_Q(1:nelec,1:nelec,1,flv))
-        dvec(1:nelec,flv)=Bstring_D(1:nelec,1,flv)
-        CALL sort_(nelec,dvec(1:nelec,flv))
+        ratio(flv)=ratio(flv)*det(nelec(flv),Bstring_Q(1:nelec(flv),1:nelec(flv),1,flv))
+        dvec(1:nelec(flv),flv)=Bstring_D(1:nelec(flv),1,flv)
+        CALL sort_(nelec(flv),dvec(1:nelec(flv),flv))
 
-        DO i=1,nelec
+        DO i=1,nelec(flv)
           ratio(flv)=ratio(flv)*dvec(i,flv)/dvec_old(i,flv)
         END DO
 
@@ -738,41 +739,41 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time
     INTEGER flag,p,i,flv
-    COMPLEX(8) t(nelec,nelec),lmat(nelec,nsite),rmat(nsite,nelec),gfast(nsite,nsite)!,tmp(nsite,nsite)
+    COMPLEX(8) gfast(nsite,nsite)
+    COMPLEX(8), ALLOCATABLE :: t(:,:),lmat(:,:),rmat(:,:)
 
     DO flv=1,nflv
+
+      ALLOCATE(t(nelec(flv),nelec(flv)),lmat(nelec(flv),nsite),rmat(nsite,nelec(flv)))
 
       gfast=g(:,:,flv)
 
       lmat=conjg(transpose(slater(:,:,flv)))
-      CALL zlq(nelec,nsite,lmat,t)
+      CALL zlq(nelec(flv),nsite,lmat,t)
       flag=0
       DO p=ntime,time,-1
-        CALL evolve_right(p,lmat,nelec,flv,.false.)
+        CALL evolve_right(p,lmat,nelec(flv),flv,.false.)
         flag=flag+1
         IF(flag/=ngroup)CYCLE
         flag=0
-        CALL zlq(nelec,nsite,lmat,t)
+        CALL zlq(nelec(flv),nsite,lmat,t)
       END DO
 
       rmat=slater(:,:,flv)
-      CALL zqr(nsite,nelec,rmat,t)
+      CALL zqr(nsite,nelec(flv),rmat,t)
       flag=0
       DO p=1,time-1
-        CALL evolve_left(p,rmat,nelec,flv,.false.)
+        CALL evolve_left(p,rmat,nelec(flv),flv,.false.)
         flag=flag+1
         IF(flag/=ngroup)CYCLE
         flag=0
-        CALL zqr(nsite,nelec,rmat,t)
+        CALL zqr(nsite,nelec(flv),rmat,t)
       END DO
 
       t=matmul(lmat,rmat)
-      !CALL zgemm('n','n',nelec,nelec,nsite,zone,lmat,nelec,rmat,nsite,zzero,t,nelec)
-      CALL inverse(nelec,t)
+      CALL inverse(nelec(flv),t)
 
       g(:,:,flv)=-matmul(rmat,matmul(t,lmat))
-      !CALL zgemm('n','n',nelec,nsite,nelec,zone,t,nelec,lmat,nelec,zzero,tmp,nelec)
-      !CALL zgemm('n','n',nsite,nsite,nelec,zmone,rmat,nsite,tmp,nelec,zzero,g,nsite)
 
       DO i=1,nsite
         g(i,i,flv)=g(i,i,flv)+1d0
@@ -782,6 +783,8 @@ CONTAINS
         gfast=matmul(matmul(expk(:,:,flv),gfast),inv_expk(:,:,flv))
         err_fast=max(maxval(abs(gfast-g(:,:,flv))),err_fast)
       END IF
+
+      DEALLOCATE(t,lmat,rmat)
 
     END DO
 
@@ -900,8 +903,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: time
     INTEGER block,pblock,flv,flag,p,i
-    COMPLEX(8) dvec(nelec),tri(nelec,nelec),tmat(nelec,nelec),gfast(nsite,nsite)
-    COMPLEX(8), ALLOCATABLE :: qmat(:,:)
+    COMPLEX(8) gfast(nsite,nsite)
+    COMPLEX(8), ALLOCATABLE :: qmat(:,:),dvec(:),tri(:,:),tmat(:,:)
 
     IF(scratch_global_useful)THEN
       scratch_global_useful=.false.
@@ -914,12 +917,14 @@ CONTAINS
 
     DO flv=1,nflv
 
+      ALLOCATE(dvec(nelec(flv)),tri(nelec(flv),nelec(flv)),tmat(nelec(flv),nelec(flv)))
+
       ! save g to evaluate the error of fast-update
       gfast=g(:,:,flv)
 
       IF(block==1)THEN
 
-        ALLOCATE(qmat(nelec,nsite))
+        ALLOCATE(qmat(nelec(flv),nsite))
 
         ! tmat*dvec*qmat=P'
         qmat=conjg(transpose(slater_Q(:,:,flv)))
@@ -928,13 +933,13 @@ CONTAINS
 
         flag=0
         DO p=ntime,1,-1
-          CALL evolve_right(p,qmat,nelec,flv,.false.)
+          CALL evolve_right(p,qmat,nelec(flv),flv,.false.)
           flag=flag+1
           IF(flag==ngroup.or.mod(p-1,nscratch)==0)THEN
             DO i=1,nsite
               qmat(:,i)=dvec(:)*qmat(:,i)
             END DO
-            CALL ldq(nelec,nsite,qmat,tri,dvec)
+            CALL ldq(nelec(flv),nsite,qmat,tri,dvec)
             tmat=matmul(tmat,tri)
             flag=0
           END IF
@@ -948,7 +953,7 @@ CONTAINS
 
         !   g = 1 - Q_R * (Q_L*Q_R)^{-1} * Q_L
         tri=matmul(qmat,slater_Q(:,:,flv))
-        CALL inverse(nelec,tri)
+        CALL inverse(nelec(flv),tri)
         g(:,:,flv)=-matmul(matmul(slater_Q(:,:,flv),tri),qmat)
         DO i=1,nsite
           g(i,i,flv)=g(i,i,flv)+1d0
@@ -958,9 +963,9 @@ CONTAINS
         DO i=1,nsite
           qmat(:,i)=dvec(:)*qmat(:,i)
         END DO
-        qmat(1:nelec,1:nelec)=matmul(qmat,slater(:,:,flv))
-        CALL ldq(nelec,nelec,qmat(1:nelec,1:nelec),tri,dvec)
-        Bstring_Q(1:nelec,1:nelec,1,flv)=qmat(1:nelec,1:nelec)
+        qmat(1:nelec(flv),1:nelec(flv))=matmul(qmat,slater(:,:,flv))
+        CALL ldq(nelec(flv),nelec(flv),qmat(1:nelec(flv),1:nelec(flv)),tri,dvec)
+        Bstring_Q(1:nelec(flv),1:nelec(flv),1,flv)=qmat(1:nelec(flv),1:nelec(flv))
         Bstring_D(:,1,flv)=dvec
         Bstring_T(:,:,1,flv)=matmul(tmat,tri)
 
@@ -968,7 +973,7 @@ CONTAINS
 
       ELSE
 
-        ALLOCATE(qmat(nsite,nelec))
+        ALLOCATE(qmat(nsite,nelec(flv)))
 
         IF(block==2)THEN
           ! qmat*dvec*tmat = slater
@@ -984,13 +989,13 @@ CONTAINS
 
         flag=0
         DO p=(block-2)*nscratch+1,(block-1)*nscratch
-          CALL evolve_left(p,qmat,nelec,flv,.false.)
+          CALL evolve_left(p,qmat,nelec(flv),flv,.false.)
           flag=flag+1
           IF(flag==ngroup.or.mod(p,nscratch)==0)THEN
-            DO i=1,nelec
+            DO i=1,nelec(flv)
               qmat(:,i)=qmat(:,i)*dvec(i)
             END DO
-            CALL qdr(nsite,nelec,qmat,tri,dvec)
+            CALL qdr(nsite,nelec(flv),qmat,tri,dvec)
             tmat=matmul(tri,tmat)
             flag=0
           END IF
@@ -1003,7 +1008,7 @@ CONTAINS
         !   = 1 - qmat * (BL_Q*qmat)^{-1} * BL_Q
 
         tri=matmul(transpose(Bstring_Q(:,:,block,flv)),qmat)
-        CALL inverse(nelec,tri)
+        CALL inverse(nelec(flv),tri)
         g(:,:,flv)=-matmul(matmul(qmat,tri),transpose(Bstring_Q(:,:,block,flv)))
         DO i=1,nsite
           g(i,i,flv)=g(i,i,flv)+1d0
@@ -1018,6 +1023,8 @@ CONTAINS
         CALL evolve_right_K(gfast,nsite,flv,.true.,.false.)
         err_fast=max(maxval(abs(gfast-g(:,:,flv))),err_fast)
       END IF
+
+      DEALLOCATE(dvec,tri,tmat)
 
     END DO
 
