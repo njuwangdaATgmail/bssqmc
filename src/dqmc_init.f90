@@ -380,7 +380,7 @@ SUBROUTINE init()
 
   !
   READ(10,*) ncross_ph_meas
-  ALLOCATE(cross_ph_meas(2,ncross_ph_meas))
+  ALLOCATE(cross_ph_meas(2,ncross_ph_meas),name_cross_ph_meas(ncross_ph_meas))
   DO i=1,ncross_ph_meas
     READ(10,*) name_cross_ph_meas(i)
     READ(10,*) cross_ph_meas(:,i)
@@ -388,7 +388,7 @@ SUBROUTINE init()
 
   !
   READ(10,*) ncross_pp_meas
-  ALLOCATE(cross_pp_meas(2,ncross_pp_meas))
+  ALLOCATE(cross_pp_meas(2,ncross_pp_meas),name_cross_pp_meas(ncross_pp_meas))
   DO i=1,ncross_pp_meas
     READ(10,*) name_cross_pp_meas(i)
     READ(10,*) cross_pp_meas(:,i)
