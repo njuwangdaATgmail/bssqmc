@@ -3,7 +3,7 @@ SUBROUTINE init()
   USE dqmc
   IMPLICIT NONE
 
-  INTEGER i,j,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond
+  INTEGER i,j,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond,i_checkerboard
   INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external,ierr
   INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
   REAL(8) re,re2,re3,re4
@@ -176,10 +176,10 @@ SUBROUTINE init()
 
     CASE(100:)
 
-      CALL set_field_external(ifield)
+      CALL set_field_external(ifield)  !; mask_field(ifield)=.true.
 
     CASE(:-100)
-      CALL set_field_external(ifield)
+      CALL set_field_external(ifield)  !; mask_field(ifield)=.true.
 
     CASE default
 
@@ -207,35 +207,9 @@ SUBROUTINE init()
       END DO
     END DO
 
-    ! read in the subspace
-    DO k=1,ndim_field(ifield)
-      READ(10,*) da,db,dc,orb2
-      IF(k==1) orb=orb2  ! the first site is used as the representative site
-                         ! i.e. where the boson field lives/is defined at
-      DO a=1,La; DO b=1,Lb; DO c=1,Lc; i=label(a,b,c,orb)
-        a2=a+da; b2=b+db; c2=c+dc
-
-        IF(a2<1 .and.(.not.pbca)) CYCLE
-        IF(a2>La.and.(.not.pbca)) CYCLE
-        IF(b2<1 .and.(.not.pbcb)) CYCLE
-        IF(b2>Lb.and.(.not.pbcb)) CYCLE
-        IF(c2<1 .and.(.not.pbcc)) CYCLE
-        IF(c2>Lc.and.(.not.pbcc)) CYCLE
-
-        IF(a2<1 .and.pbca) a2=a2+La
-        IF(a2>La.and.pbca) a2=a2-La
-        IF(b2<1 .and.pbcb) b2=b2+Lb
-        IF(b2>Lb.and.pbcb) b2=b2-Lb
-        IF(c2<1 .and.pbcc) c2=c2+Lc
-        IF(c2>Lc.and.pbcc) c2=c2-Lc
-        i2=label(a2,b2,c2,orb2)
-        nb_field(i,k,ifield)=i2
-
-      END DO; END DO; END DO
-    END DO
-
     ! make n_checkerboard-1 copies of ifield
     DO i=1,n_checkerboard-1
+      mask_field(ifield+i)      = mask_field(ifield)
       type_field(ifield+i)      = type_field(ifield)
       g_field(:,ifield+i)       = g_field(:,ifield)
       isingmax(ifield+i)        = isingmax(ifield)
@@ -247,20 +221,50 @@ SUBROUTINE init()
       lam_ising(:,ifield+i)     = lam_ising(:,ifield)
       gamma_ising(:,ifield+i)   = gamma_ising(:,ifield)
       fmat(:,:,ifield+i,:)      = fmat(:,:,ifield,:)
-      nb_field(:,:,ifield+i)    = nb_field(:,:,ifield)
+      !nb_field(:,:,ifield+i)    = nb_field(:,:,ifield)
     END DO
 
-    ! the only difference between these n_checkerboard boson fields is mask_field_site
-    DO i=0,n_checkerboard-1
+
+    ! the only difference between these n_checkerboard boson fields is nb_field and mask_field_site
+    DO i_checkerboard=0,n_checkerboard-1
+    
+      ! read in the subspace
+      DO k=1,ndim_field(ifield)
+        READ(10,*) da,db,dc,orb2
+        IF(k==1) orb=orb2  ! the first site is used as the representative site
+                           ! i.e. where the boson field lives/is defined at
+        DO a=1,La; DO b=1,Lb; DO c=1,Lc; i=label(a,b,c,orb)
+          a2=a+da; b2=b+db; c2=c+dc
+
+          IF(a2<1 .and.(.not.pbca)) CYCLE
+          IF(a2>La.and.(.not.pbca)) CYCLE
+          IF(b2<1 .and.(.not.pbcb)) CYCLE
+          IF(b2>Lb.and.(.not.pbcb)) CYCLE
+          IF(c2<1 .and.(.not.pbcc)) CYCLE
+          IF(c2>Lc.and.(.not.pbcc)) CYCLE
+
+          IF(a2<1 .and.pbca) a2=a2+La
+          IF(a2>La.and.pbca) a2=a2-La
+          IF(b2<1 .and.pbcb) b2=b2+Lb
+          IF(b2>Lb.and.pbcb) b2=b2-Lb
+          IF(c2<1 .and.pbcc) c2=c2+Lc
+          IF(c2>Lc.and.pbcc) c2=c2-Lc
+          i2=label(a2,b2,c2,orb2)
+          nb_field(i,k,ifield+i_checkerboard)=i2
+
+        END DO; END DO; END DO
+      END DO
+
       READ(10,*) n_cond   ! how many conditions to define this HS field
       DO k=1,n_cond
-        READ(10,*) ma,moda,mb,modb,mc,modc,orb
+        READ(10,*) ma,moda,mb,modb,mc,modc
         DO a=1,La; DO b=1,Lb; DO c=1,Lc
           IF(mod(a,ma)==moda.and.mod(b,mb)==modb.and.mod(c,mc)==modc)THEN
-            mask_field_site(label(a,b,c,orb),ifield+i)=.true.
+            mask_field_site(label(a,b,c,orb),ifield+i_checkerboard)=.true.
           END IF
         END DO; END DO; END DO
       END DO
+
     END DO
 
     ifield=ifield+n_checkerboard-1
