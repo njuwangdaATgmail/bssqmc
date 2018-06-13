@@ -433,12 +433,12 @@ END SUBROUTINE
 
 SUBROUTINE regular_input()
   IMPLICIT NONE
-  CHARACTER(80) str,str2
+  CHARACTER(200) str,str2
   INTEGER stat
   OPEN(10,file='dqmc.in')
   OPEN(20,file='dqmc.in_')
   DO
-    READ(10,'(a80)',iostat=stat) str
+    READ(10,'(a200)',iostat=stat) str
     IF(stat/=0) exit
     str2=trim(adjustl(str))
     IF(str2(1:1)=='#'.or.str2(1:1)=='!'.or.str2(1:1)==':'.or.len(trim(adjustl(str2)))==0)CYCLE
