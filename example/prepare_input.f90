@@ -8,11 +8,14 @@
 ! + ...
 PROGRAM main
   IMPLICIT NONE
+  COMPLEX(8), PARAMETER :: one=(1d0,0d0)
+  COMPLEX(8), PARAMETER :: zero=(0d0,0d0)
+  COMPLEX(8), PARAMETER :: uniti=(0d0,1d0)
   INTEGER i1,i2,i3,i4,i5,i6,nflv,norb,i,j,k,flv,n_g,nfield,ncond,d,n_checkerboard,n2,err
   REAL(8) r1,r2,r3,r4
   COMPLEX(8) z1,z2,z3,z4
   LOGICAL l1,l2,l3,l4
-  CHARACTER(120) str,line
+  CHARACTER(120) str
   LOGICAL lvec(100)
   INTEGER ivec(100)
   REAL(8) rvec(100)
@@ -24,6 +27,35 @@ PROGRAM main
     PROCEDURE saferead_integer_character, saferead_character
     PROCEDURE saferead_logical_integer
   END INTERFACE
+  COMPLEX(8), DIMENSION(2,2) :: s0,s1,s2,s3,s0t0,s0t1,s0t2,s0t3,s1t0,s1t1,s1t2,s1t3,&
+    &                           z0,         s2t0,s2t1,s2t2,s2t3,s3t0,s3t1,s3t2,s3t3
+  
+  z0=0d0
+  s0=reshape((/one,zero,zero,one/),(/2,2/))
+  s1=reshape((/zero,one,one,zero/),(/2,2/))
+  s2=reshape((/zero,uniti,-uniti,zero/),(/2,2/))
+  s3=reshape((/one,zero,zero,-one/),(/2,2/))
+  
+  s0t0=0d0; s0t0(1:2,1:2)=s0;         s0t0(3:4,3:4)=s0
+  s0t1=0d0; s0t1(1:2,3:4)=s0;         s0t1(3:4,1:2)=s0
+  s0t2=0d0; s0t2(1:2,3:4)=-uniti*s0;  s0t2(3:4,1:2)=uniti*s0
+  s0t3=0d0; s0t3(1:2,1:2)=s0;         s0t3(3:4,3:4)=-s0
+
+  s1t0=0d0; s1t0(1:2,1:2)=s1;         s1t0(3:4,3:4)=s1
+  s1t1=0d0; s1t1(1:2,3:4)=s1;         s1t1(3:4,1:2)=s1
+  s1t2=0d0; s1t2(1:2,3:4)=-uniti*s1;  s1t2(3:4,1:2)=uniti*s1
+  s1t3=0d0; s1t3(1:2,1:2)=s1;         s1t3(3:4,3:4)=-s1
+
+  s2t0=0d0; s2t0(1:2,1:2)=s2;         s2t0(3:4,3:4)=s2
+  s2t1=0d0; s2t1(1:2,3:4)=s2;         s2t1(3:4,1:2)=s2
+  s2t2=0d0; s2t2(1:2,3:4)=-uniti*s2;  s2t2(3:4,1:2)=uniti*s2
+  s2t3=0d0; s2t3(1:2,1:2)=s2;         s2t3(3:4,3:4)=-s2
+
+  s3t0=0d0; s3t0(1:2,1:2)=s3;         s3t0(3:4,3:4)=s3
+  s3t1=0d0; s3t1(1:2,3:4)=s3;         s3t1(3:4,1:2)=s3
+  s3t2=0d0; s3t2(1:2,3:4)=-uniti*s3;  s3t2(3:4,1:2)=uniti*s3
+  s3t3=0d0; s3t3(1:2,1:2)=s3;         s3t3(3:4,3:4)=-s3
+
 
   OPEN(10,file='dqmc.in')
 
@@ -234,6 +266,11 @@ PROGRAM main
     WRITE(10,'(1i40,10x,a)') i1,':ndim_field'
     
     DO flv=1,nflv
+      PRINT*,'fmat of flv=',flv,': you can choose s0,s1,s2,s3,sitj or input manually'
+      str='by hand'
+      CALL saferead(str)
+      IF(trim(str)=='s0')THEN
+        ...
       DO k=1,d
         PRINT*,'fmat(k,:,flv): k=',k,' flv=',flv
         rvec(1:2*d)=0d0; rvec(2*d-1)=1d0
