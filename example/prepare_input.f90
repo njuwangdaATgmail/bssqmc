@@ -297,7 +297,7 @@ PROGRAM main
   END DO
 
   PRINT*,'nrr_meas: how many rr-points to measure (useful in models without translation symmetry)'
-  i1=0
+  i1=1
   CALL saferead(i1); k=i1
   WRITE(10,'(1i40,10x,a)') i1,':nrr_meas'
   

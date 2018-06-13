@@ -298,7 +298,7 @@ SUBROUTINE init()
   READ(10,*) nrr_meas
   IF(nrr_meas>0) ALLOCATE(rr_array(3,2,nrr_meas))
   DO i=1,nrr_meas
-    READ(10,*) rr_array(:,1,nrr_meas),rr_array(:,2,nrr_meas)
+    READ(10,*) rr_array(:,1,i),rr_array(:,2,i)
   END DO
 
   READ(10,*) ntau_meas

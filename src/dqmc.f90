@@ -174,7 +174,7 @@ MODULE dqmc
   
   LOGICAL, ALLOCATABLE :: fork14_pp_meas(:), fork13_pp_meas(:)
   
-  CHARACTER(8), ALLOCATABLE :: name_ph_meas(:), name_pp_meas(:)
+  CHARACTER(20), ALLOCATABLE :: name_ph_meas(:), name_pp_meas(:)
 
   INTEGER, ALLOCATABLE :: ndim_ph_meas(:), ndim_pp_meas(:)
 
