@@ -1,9 +1,11 @@
 ! This is an interactive engine for the users to prepare the input file 'dqmc.in'.
 ! This program is standalone.
 ! to be added: 
-! + more comments
-! + add default values
-! + when reading error occurs, read again
+! expand fmat fmat_ph_meas, fmat_pp_meas using
+! + 3 Pauli matrices
+! + 8 Gelmann matrices
+! + 15 gamma matrices
+! + ...
 PROGRAM main
   IMPLICIT NONE
   INTEGER i1,i2,i3,i4,i5,i6,nflv,norb,i,j,k,flv,n_g,nfield,ncond,d,n_checkerboard,n2,err
@@ -121,13 +123,13 @@ PROGRAM main
   WRITE(10,'(10x,3i10,10x,a)') ivec(1:3),':La,Lb,Lc'
 
   PRINT*,'nelec: number of filled electrons for each flv'
-  ivec(1:nflv)=ivec(1)*ivec(2)*ivec(3)/2
+  ivec(1:nflv)=ivec(1)*ivec(2)*ivec(3)*norb/2
   CALL saferead(nflv,ivec)
   WRITE(10,'(100i10)',advance='no') ivec(1:nflv)
   WRITE(10,'(10x,a)') ':nelec'
 
   PRINT*,'ncopy(nflv): number of copies for each flavor'
-  ivec(1:nflv)=2
+  ivec(1:nflv)=1
   CALL saferead(nflv,ivec)
   WRITE(10,'(100i10)',advance='no') ivec(1:nflv)
   WRITE(10,'(10x,a)') ':ncopy'
@@ -245,25 +247,30 @@ PROGRAM main
       END DO
     END DO
 
-    DO k=1,d
-      PRINT*,'da,db,dc,orb for basis',k
-      ivec(1:4)=(/0,0,0,1/)
-      CALL saferead(4,ivec)
-      WRITE(10,'(4i10,10x,a,1i4)') ivec(1:4),':da,db,dc,orb for basis',k
-    END DO
 
     DO k=1,n_checkerboard
+
+      PRINT*,'for checkboard',k
+    
+      DO j=1,d
+        PRINT*,'da,db,dc,orb for basis',j
+        ivec(1:4)=(/0,0,0,1/)
+        CALL saferead(4,ivec)
+        WRITE(10,'(4i10,10x,a,1i4)') ivec(1:4),':da,db,dc,orb for basis',j
+      END DO
+
       PRINT*,'how many conditions to define this checkerboard?'
       i1=1
       CALL saferead(i1); ncond=i1
       WRITE(10,'(1i40,10x,a)') i1,':n_cond'
-      PRINT*,'for each condition, provide: ma,moda,mb,modb,mc,modc,orb'
+      PRINT*,'for each condition, provide: ma,moda,mb,modb,mc,modc'
       PRINT*,'where the boson field lives only when mod(a,ma)==moda, mod(b,mb)==modb, mod(c,mc)==modc'
       DO j=1,ncond
-        ivec(1:7)=(/1,0,1,0,1,0,1/)
-        CALL saferead(7,ivec)
-        WRITE(10,'(7i10)') ivec(1:7)
+        ivec(1:6)=(/1,0,1,0,1,0/)
+        CALL saferead(6,ivec)
+        WRITE(10,'(6i10)') ivec(1:6)
       END DO
+
     END DO
 
   END DO
@@ -297,7 +304,7 @@ PROGRAM main
   END DO
 
   PRINT*,'nrr_meas: how many rr-points to measure (useful in models without translation symmetry)'
-  i1=1
+  i1=0
   CALL saferead(i1); k=i1
   WRITE(10,'(1i40,10x,a)') i1,':nrr_meas'
   
@@ -327,7 +334,7 @@ PROGRAM main
     WRITE(10,'(20x,2l10,10x,a)') lvec(1:2),':hartree_ph_meas,fork_ph_meas'
 
     PRINT*,'ndim_ph_meas and name_ph_meas for PH-', i
-    i1=1; str='default_ph'
+    i1=nflv; str='default_ph'
     CALL saferead(i1,str); d=i1
     WRITE(10,'(10x,1i10,1a20,10x,a)') i1,trim(adjustl(str)),':ndim_ph_meas, name_ph_meas'
     
@@ -368,7 +375,7 @@ PROGRAM main
     WRITE(10,'(20x,2l10,10x,a)') lvec(1:2),':fork13_pp_meas,fork14_pp_meas'
 
     PRINT*,'ndim_pp_meas and name_pp_meas for PP-', i
-    i1=1; str='default_pp'
+    i1=nflv; str='default_pp'
     CALL saferead(i1,str); d=i1
     WRITE(10,'(10x,1i10,1a20,10x,a)') i1,trim(adjustl(str)),':ndim_pp_meas, name_pp_meas'
     
@@ -404,7 +411,7 @@ PROGRAM main
     PRINT*,'name of the channel'
     str='default_cross_ph'
     CALL saferead(str)
-    WRITE(10,'(20x,1l10,20x,a)') trim(adjustl(str)),' :name of the channel'
+    WRITE(10,'(20x,1a20,10x,a)') trim(adjustl(str)),' :name of the channel'
     PRINT*,'which two channels are correlated?'
     ivec(1:2)=(/1,2/)
     CALL saferead(2,ivec)
@@ -420,7 +427,7 @@ PROGRAM main
     PRINT*,'name of the channel'
     str='default_cross_pp'
     CALL saferead(str)
-    WRITE(10,'(20x,1l10,20x,a)') trim(adjustl(str)),':name of the channel'
+    WRITE(10,'(20x,1a20,10x,a)') trim(adjustl(str)),':name of the channel'
     PRINT*,'which two channels are correlated?'
     ivec(1:2)=(/1,2/)
     CALL saferead(2,ivec)

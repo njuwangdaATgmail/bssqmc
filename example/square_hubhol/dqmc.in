@@ -3,11 +3,11 @@
  #------------------------------------------------
                                        F          :restart
                                        F          :proj
-                                       1          :nflv
+                                       2          :nflv
                                 4.000000          :beta
                                 0.100000          :dtau
-                                      10          :nsp
-                                      10          :nbin
+                                       1          :nsp
+                                       2          :nbin
                                     1000          :nwarmup
                                     1000          :nmeasure
                                        1          :ninterval
@@ -21,66 +21,76 @@
  #------------------------------------------------
                                        1          :norb
                    4         4         1          :La,Lb,Lc
-         8          :nelec
-         2          :ncopy
+         8         8          :nelec
+         1         1          :ncopy
                    T         T         F          :pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          :twista,twistb,twistc in unit of 2pi
             1.000000  0.000000  0.000000          :a0r
             0.000000  1.000000  0.000000          :b0r
             0.000000  0.000000  1.000000          :c0r
             0.000000  0.000000  0.000000          :rorb- 1
-                   1         1         0          :cuta,cutb,cutc
+                   1         1         1          :cuta,cutb,cutc
                                        2          :nhop
    1   0   0   1   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
    0   1   0   1   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
  #------------------------------------------------
  #           boson field block          
  #------------------------------------------------
-         1         1         1         2          :n_g,nfield,max_ndim_field,max_isingmax
+         2         2         1         2          :n_g,nfield,max_ndim_field,max_isingmax
                              1         1          :type_field, n_checkerboard
-            4.000000  1.000000  0.000000          :g_field
+           -4.000000  0.000000  0.000000          :g_field
   0.000000  0.000000  0.000000  0.000000          :dphi, dphi_global
-                    1000000000         0          :ninterval_global, global_method
+                       1000000         0          :ninterval_global, global_method
                                        1          :ndim_field
+    1.000000    0.000000          : fmat
+   -1.000000    0.000000          : fmat
+         0         0         0         1          :da,db,dc,orb for basis   1
+                                       1          :n_cond
+         1         0         1         0         1         0         1
+                            -2         1          :type_field, n_checkerboard
+            2.000000  1.000000  1.000000          :g_field
+  0.200000  0.000000  0.100000  0.000000          :dphi, dphi_global
+                            10         2          :ninterval_global, global_method
+                                       1          :ndim_field
+    1.000000    0.000000          : fmat
     1.000000    0.000000          : fmat
          0         0         0         1          :da,db,dc,orb for basis   1
                                        1          :n_cond
-         1         0         1         0         1         0        1
+         1         0         1         0         1         0
  #------------------------------------------------
  #           measurement block          
  #------------------------------------------------
                                        2          :nk_meas
                    0         0         0
                    2         2         0
-                                       4          :nr_meas
+                                       2          :nr_meas
                    0         0         0
-                   1         1         0
-                   2         2         0
-                   3         3         0
+                   1         0         0
                                        0          :nrr_meas
                                       10          :ntau_meas
-                             3         1          :n_ph_meas,max_ndim_ph_meas
-                             T         F          :hartree_ph_meas,fork_ph_meas
-                   1             doublon          :ndim_ph_meas, name_ph_meas
- ! for each basis, da,db,dc,orb,flv are given below
-         0         0         0         1         1
-    1.000000    0.000000          :fmat_ph_meas
-                             F         T          :hartree_ph_meas,fork_ph_meas
-                   1           spin_spin          :ndim_ph_meas, name_ph_meas
- ! for each basis, da,db,dc,orb,flv are given below
-         0         0         0         1         1
-    1.000000    0.000000          :fmat_ph_meas
+                             2         2          :n_ph_meas,max_ndim_ph_meas
                              T         T          :hartree_ph_meas,fork_ph_meas
-                   1       charge_charge          :ndim_ph_meas, name_ph_meas
+                   2                  ss          :ndim_ph_meas, name_ph_meas
  ! for each basis, da,db,dc,orb,flv are given below
          0         0         0         1         1
-    1.000000    0.000000          :fmat_ph_meas
-                             1         1          :n_pp_meas,max_ndim_pp_meas
-                             F         T          :fork13_pp_meas,fork14_pp_meas
-                   1           pair_pair          :ndim_pp_meas, name_pp_meas
+         0         0         0         1         2
+    0.000000    0.000000    1.000000    0.000000          :fmat_ph_meas
+    1.000000    0.000000    0.000000    0.000000
+                             T         T          :hartree_ph_meas,fork_ph_meas
+                   2                  nn          :ndim_ph_meas, name_ph_meas
  ! for each basis, da,db,dc,orb,flv are given below
          0         0         0         1         1
-    1.000000    0.000000          :fmat_pp_meas
+         0         0         0         1         2
+    1.000000    0.000000    0.000000    0.000000          :fmat_ph_meas
+    0.000000    0.000000    1.000000    0.000000
+                             1         2          :n_pp_meas,max_ndim_pp_meas
+                             T         T          :fork13_pp_meas,fork14_pp_meas
+                   2                  pp          :ndim_pp_meas, name_pp_meas
+ ! for each basis, da,db,dc,orb,flv are given below
+         0         0         0         1         1
+         0         0         0         1         2
+    0.000000    0.000000   -1.000000    0.000000          :fmat_pp_meas
+    1.000000    0.000000    0.000000    0.000000
                              0                    :ncross_ph_meas
                              0                    :ncross_pp_meas
                                        T          :FAtech
