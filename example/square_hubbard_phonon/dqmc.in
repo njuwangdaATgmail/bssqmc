@@ -4,12 +4,12 @@
                                        F          !restart
                                        F          !proj
                                        2          !nflv
-                                8.000000          !beta
+                                16.000000          !beta
                                 0.100000          !dtau
                                        1          !nsp
                                        2          !nbin
-                                    1000          !nwarmup
-                                    1000          !nmeasure
+                                     500          !nwarmup
+                                     500          !nmeasure
                                        1          !ninterval
                                      100          !ntmpout
                                        4          !nscratch
@@ -52,7 +52,7 @@
               1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
 !----------------- Coulomb V --------------------------------------------------------------
                              1         4          !type_field, n_checkerboard
-           -0.100000  0.000000  0.000000          !g_field
+           -0.500000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        2          !ndim_field
@@ -80,7 +80,7 @@
               1    0    2    1    1    0          !ma,moda,mb,modb,mc,modc
 !-------------- Holstein ---------------------------------------------------------------------
                             -2         1          !type_field, n_checkerboard
-            4.000000  1.000000  1.000000          !g_field
+            0.000000  1.000000  1.000000          !g_field
   0.200000  0.000000  0.100000  0.000000          !dphi, dphi_global
                              1         2          !ninterval_global, global_method
                                        1          !ndim_field

@@ -43,3 +43,5 @@ set foldenable
 set foldmethod=indent
 let fortran_fold=1
 set foldlevelstart=99
+
+set textwidth=120

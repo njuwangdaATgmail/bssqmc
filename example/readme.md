@@ -21,3 +21,7 @@ half-filled bipartite lattice:
 
 Their suitable combinations, e.g.:
 + SU(2N) Kane-Mele-Hubbard-Jperp-Peierls model
+
+### questions
++ Is Majorana representation necessary to eliminate sign prblem in some specific models? Can we
+  realize all the Majorana-QMC models?
