@@ -190,7 +190,7 @@ MODULE dqmc
 
   INTEGER ncross_ph_meas, ncross_pp_meas
 
-  CHARACTER(8), ALLOCATABLE :: name_cross_ph_meas(:), name_cross_pp_meas(:)
+  CHARACTER(20), ALLOCATABLE :: name_cross_ph_meas(:), name_cross_pp_meas(:)
 
   ! dimension (2,ncross_ph_meas) and (2,ncross_pp_meas)
   INTEGER, ALLOCATABLE :: cross_ph_meas(:,:), cross_pp_meas(:,:)
