@@ -395,18 +395,18 @@ CONTAINS
       PRINT'(1a50,100f7.4)','acceptance rate of global update:', &
       & Naccept_field_global(:)*1d0/(Ntotal_field_global(:)+1d-30)
       PRINT*,'field range:'
-      DO ifield=1,nfield
+      DO ifield=1,nfield; IF(.not.mask_field(ifield))CYCLE
         remax=-1d30
         remin=1d30
         immax=-1d30
         immin=1d30
         DO time=1,ntime
           remax=max(remax,maxval(real(field(:,time,ifield)),mask_field_site(:,ifield)))
-          remin=min(remax,minval(real(field(:,time,ifield)),mask_field_site(:,ifield)))
-          immax=max(remax,maxval(aimag(field(:,time,ifield)),mask_field_site(:,ifield)))
-          immin=max(remax,maxval(aimag(field(:,time,ifield)),mask_field_site(:,ifield)))
+          remin=min(remin,minval(real(field(:,time,ifield)),mask_field_site(:,ifield)))
+          immax=max(immax,maxval(aimag(field(:,time,ifield)),mask_field_site(:,ifield)))
+          immin=min(immin,maxval(aimag(field(:,time,ifield)),mask_field_site(:,ifield)))
         END DO
-        IF(mask_field(ifield)) PRINT'(1i4,1a46,4e15.4)',ifield,'  max(Re), min(Re), max(Im), min(Im):', &
+        PRINT'(1i4,1a46,4e15.4)',ifield,'  max(Re), min(Re), max(Im), min(Im):', &
           & remax,remin,immax,immin
           !& maxval(real(field(:,:,ifield))),minval(real(field(:,:,ifield))), &
         !& maxval(aimag(field(:,:,ifield))),minval(aimag(field(:,:,ifield)))
