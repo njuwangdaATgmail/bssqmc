@@ -52,7 +52,7 @@
               1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
 !----------------- Coulomb V --------------------------------------------------------------
                              1         4          !type_field, n_checkerboard
-           -1.000000  0.000000  0.000000          !g_field
+           -0.100000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        2          !ndim_field
@@ -187,7 +187,7 @@
                                        2          !nrr_meas
               1    1    1    1    1    1
               1    1    1    2    1    1
-                                      10          !ntau_meas
+                                       0          !ntau_meas
                              5         2          !n_ph_meas,max_ndim_ph_meas
                              T         T          !hartree_ph_meas,fork_ph_meas
                    1                 nup          !ndim_ph_meas, name_ph_meas

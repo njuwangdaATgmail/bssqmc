@@ -17,6 +17,7 @@ half-filled bipartite lattice:
 + SU(N) Jdimer-model (when N=1, it becomes spinless V-model)
 + SU(N) Holstein/Peierls/negative-U model
 ? UV-model
+? small V will greatly reduce the sign problem of Hubbard-Holstein model
 
 Their suitable combinations, e.g.:
 + SU(2N) Kane-Mele-Hubbard-Jperp-Peierls model
