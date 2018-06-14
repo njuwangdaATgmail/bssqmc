@@ -804,6 +804,7 @@ SUBROUTINE measurement(time)
       IF(nrr_meas>0)THEN
 
         ALLOCATE(ob4(nrr_meas,norb,norb,nflv))
+        ALLOCATE(ob4_(nrr_meas,norb,norb,nflv))
         ob4=0d0
         DO ir=1,nrr_meas
           DO orb=1,norb; i=label(rr_array(1,1,ir),rr_array(2,1,ir),rr_array(3,1,ir),orb)
@@ -817,8 +818,8 @@ SUBROUTINE measurement(time)
         END DO
         ob4=ob4*currentphase
         ob4_=ob4_*currentphase
-        CALL zput_array(nr_meas*norb*norb*nflv,ob4)
-        CALL zput_array(nr_meas*norb*norb*nflv,ob4_)
+        CALL zput_array(nrr_meas*norb*norb*nflv,ob4)
+        CALL zput_array(nrr_meas*norb*norb*nflv,ob4_)
         DEALLOCATE(ob4,ob4_)
 
       END IF
