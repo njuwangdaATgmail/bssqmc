@@ -1316,7 +1316,7 @@ CONTAINS
     INTEGER ifield
     CALL evolve_left_K(matrix,d,flv,inv,.true.)
     DO ifield=1,nfield
-      CALL evolve_left_V(time,ifield,matrix,d,flv,inv)
+      IF(mask_field(ifield)) CALL evolve_left_V(time,ifield,matrix,d,flv,inv)
     END DO
     CALL evolve_left_K(matrix,d,flv,inv,.true.)
   END SUBROUTINE evolve_left_2nd
@@ -1330,7 +1330,7 @@ CONTAINS
     INTEGER ifield
     CALL evolve_right_K(matrix,d,flv,inv,.true.)
     DO ifield=nfield,1,-1
-      CALL evolve_right_V(time,ifield,matrix,d,flv,inv)
+      IF(mask_field(ifield)) CALL evolve_right_V(time,ifield,matrix,d,flv,inv)
     END DO
     CALL evolve_right_K(matrix,d,flv,inv,.true.)
   END SUBROUTINE evolve_right_2nd
