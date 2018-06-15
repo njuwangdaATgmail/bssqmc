@@ -1,11 +1,8 @@
 ! This is an interactive engine for the users to prepare the input file 'dqmc.in'.
 ! This program is standalone.
 ! to be added: 
-! expand fmat fmat_ph_meas, fmat_pp_meas using
-! + 3 Pauli matrices
-! + 8 Gelmann matrices
-! + 15 gamma matrices
-! + ...
+! ? add commonly-used interactions smartly
+! ? add commonly-used correlation functions smartly
 PROGRAM main
   IMPLICIT NONE
   COMPLEX(8), PARAMETER :: one=(1d0,0d0)
@@ -28,6 +25,7 @@ PROGRAM main
     PROCEDURE saferead_real, saferead_real_array
     PROCEDURE saferead_integer_real_array
     PROCEDURE saferead_integer_character, saferead_character
+    PROCEDURE saferead_integer_array_character
     PROCEDURE saferead_logical_integer
   END INTERFACE
   
@@ -141,6 +139,7 @@ PROGRAM main
   CALL saferead(r1)
   WRITE(10,'(1f40.6,10x,a)') r1,'!newMetro'
 
+  WRITE(10,*)
   WRITE(10,*) '!------------------------------------------------!'
   WRITE(10,*) '!           fermion lattice block                !'
   WRITE(10,*) '!------------------------------------------------!'
@@ -239,6 +238,7 @@ PROGRAM main
     WRITE(10,'(5i4,2f10.6,10x,a)') ivec(1:5),rvec(1:2),'!da,db,dc,orb1,orb2,Re(t),Im(t)'
   END DO
 
+  WRITE(10,*)
   WRITE(10,*) '!------------------------------------------------!'
   WRITE(10,*) '!           boson field block                    !'
   WRITE(10,*) '!------------------------------------------------!'
@@ -254,12 +254,21 @@ PROGRAM main
 
   DO i=1,n_g
     
-    PRINT*,'type_field, n_checkerboard for i_g=',i
+    PRINT*,'type_field, n_checkerboard, name for i_g=',i
     PRINT*,'  - type_field = 1(HS1), 2(HS2), 3(HSgeneral), -1(HScontinuous), -2(phonon)'
     PRINT*,'                 100+(user-defined ising field), -100-(user-defined continuous field)'
     PRINT*,'  - n_checkerboard counts the number of independent boson fields belong to this kind of interaction'
     ivec(1:2)=(/1,1/)
-    CALL saferead(2,ivec); n_checkerboard=ivec(2)
+    IF(i<=9)THEN
+      WRITE(str,'(1a,1i1)') 'interaction_',i
+    ELSEIF(i<=99)THEN
+      WRITE(str,'(1a,1i2)') 'interaction_',i
+    ELSE
+      WRITE(str,'(1a,1i3)') 'interaction_',i
+    END IF
+    CALL saferead(2,ivec,str); n_checkerboard=ivec(2)
+    WRITE(10,*)
+    WRITE(10,'(50x,a)') '!setting block of '//trim(adjustl(str))
     WRITE(10,'(20x,2i10,10x,a)') ivec(1:2),'!type_field, n_checkerboard'
     
     PRINT*,'g_field for i_g=',i
@@ -359,6 +368,7 @@ PROGRAM main
     DO k=1,n_checkerboard
 
       PRINT*,'for checkboard',k
+      WRITE(10,'(50x,a,1i4)'),'!for checkboard',k
     
       DO j=1,d
         PRINT*,'da,db,dc,orb for basis',j
@@ -387,6 +397,7 @@ PROGRAM main
 
   END DO
 
+  WRITE(10,*)
   WRITE(10,*) '!------------------------------------------------!'
   WRITE(10,*) '!           measurement block                    !'
   WRITE(10,*) '!------------------------------------------------!'
@@ -440,6 +451,8 @@ PROGRAM main
 
   DO i=1,n2
     
+    WRITE(10,'(50x,a,1i4)') '!setting block for PH-',i
+
     PRINT*,'hartree_ph_meas, fork_ph_meas for PH-', i
     lvec(1:2)=(/.true.,.true./)
     CALL saferead(2,lvec)
@@ -527,6 +540,7 @@ PROGRAM main
     END SELECT
   END DO
   
+  WRITE(10,*)
   PRINT*,'n_pp_meas, max_ndim_pp_meas: how many PP-channel two-particle Green functions to measure'
   PRINT*,'                             and the maximal dimension of fmat given below'
   ivec(1:2)=(/0,0/)
@@ -535,6 +549,8 @@ PROGRAM main
 
   DO i=1,n2
     
+    WRITE(10,'(50x,a,1i4)') '!setting block for PP-',i
+
     PRINT*,'fork13_pp_meas, fork14_pp_meas for PP-', i
     lvec(1:2)=(/.true.,.true./)
     CALL saferead(2,lvec)
@@ -622,6 +638,7 @@ PROGRAM main
     END SELECT
   END DO
 
+  WRITE(10,*)
   PRINT*,"ncross_ph_meas: how many crossing-PH-channel measurements G(ph1,ph2)=<O(ph1)O'(ph2)>"
   i1=0
   CALL saferead(i1); n2=i1
@@ -826,7 +843,7 @@ SUBROUTINE saferead_integer_character(x,y)
   CHARACTER(120) y
   CHARACTER(120) line
   INTEGER err
-  PRINT*,'press ENTER for default value:',x,y
+  PRINT*,'press ENTER for default value:',x,trim(adjustl(y))
   DO
     READ(5,'(1a)') line
     IF(len(trim(line))/=0)THEN
@@ -845,11 +862,32 @@ SUBROUTINE saferead_character(y)
   CHARACTER(120) y
   CHARACTER(120) line
   INTEGER err
-  PRINT*,'press ENTER for default value:',y
+  PRINT*,'press ENTER for default value:',trim(adjustl(y))
   DO
     READ(5,'(1a)') line
     IF(len(trim(line))/=0)THEN
       READ(line,*,iostat=err) y
+      IF(err/=0)THEN
+        PRINT*,'input again'
+        CYCLE
+      END IF
+    END IF
+    EXIT
+  END DO
+END SUBROUTINE
+
+SUBROUTINE saferead_integer_array_character(n,x,y)
+  IMPLICIT NONE
+  INTEGER n
+  INTEGER x(n)
+  CHARACTER(120) y
+  CHARACTER(120) line
+  INTEGER err
+  PRINT*,'press ENTER for default value:',x,trim(adjustl(y))
+  DO
+    READ(5,'(1a)') line
+    IF(len(trim(line))/=0)THEN
+      READ(line,*,iostat=err) x,y
       IF(err/=0)THEN
         PRINT*,'input again'
         CYCLE
