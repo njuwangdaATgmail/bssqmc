@@ -414,6 +414,7 @@ PROGRAM main
     WRITE(10,'(10x,3i10,10x)') ivec(1:3)
   END DO
   
+  WRITE(10,*)
   PRINT*,'nr_meas: how many (relative) r-points to measure'
   i1=0
   CALL saferead(i1); k=i1
@@ -426,6 +427,7 @@ PROGRAM main
     WRITE(10,'(10x,3i10,10x)') ivec(1:3)
   END DO
 
+  WRITE(10,*)
   PRINT*,'nrr_meas: how many rr-points to measure (useful in models without translation symmetry)'
   i1=0
   CALL saferead(i1); k=i1
@@ -438,11 +440,13 @@ PROGRAM main
     WRITE(10,'(10x,6i5)') ivec(1:6)
   END DO
 
+  WRITE(10,*)
   PRINT*,'ntau_meas: time displaced Green functions are measured during [-ntau_meas,ntau_meas]'
   i1=0
   CALL saferead(i1)
   WRITE(10,'(1i40,10x,a)') i1,'!ntau_meas'
 
+  WRITE(10,*)
   PRINT*,'n_ph_meas, max_ndim_ph_meas: how many PH-channel two-particle Green functions to measure'
   PRINT*,'                             and the maximal dimension of fmat given below'
   ivec(1:2)=(/0,0/)
@@ -655,6 +659,7 @@ PROGRAM main
     WRITE(10,'(20x,2i10,10x,a)') ivec(1:2),'!cross_ph_meas'
   END DO
   
+  WRITE(10,*)
   PRINT*,"ncross_pp_meas: how many crossing-PP-channel measurements G(pp1,pp2)=<O(pp1)O'(pp2)>"
   i1=0
   CALL saferead(i1); n2=i1
@@ -672,6 +677,7 @@ PROGRAM main
   END DO
 
 
+  WRITE(10,*)
   PRINT*,'FAtech: whether to use Feldbacher-Assaad stablization algorithm for T=0'
   l1=.true.
   CALL saferead(l1)
