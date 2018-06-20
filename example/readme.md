@@ -17,19 +17,23 @@ half-filled bipartite lattice:
 + SU(N) Jdimer-model (when N=1, it becomes spinless V-model)
 + SU(N) Holstein/Peierls/negative-U model
   + small V will greatly reduce the sign problem of Hubbard-Holstein model?
++ multi-orbital Coulomb interaction model with V=0 and J=J'
++ any multi-orbital Coulomb interaction model?
 
 Their suitable combinations, e.g.:
+
 + SU(2N) Kane-Mele-Hubbard-Jperp-Peierls model
 
 ### questions
 + Is Majorana representation necessary to eliminate sign prblem in some specific models? Can we realize all the Majorana-QMC models?
 
 ### Multi-orbital Coulomb interactions
+
 + Kanamori parameters: (see e.g. Hotta, 2006; XY Deng, thesis) 
   + J=J' only without spin-orbit coupling
   + U=V+J+J' only for rotational symmetrical system (e.g. among Eg or t2g orbitals, or isolated atom)
 
-+ Take J=J', these two terms can be combin as a square form:
++ Take J=J', these two terms can be combined as a square form:
 $$
 \frac{1}{2}\left(\sum_\sigma a^\dagger_\sigma b_\sigma+h.c.\right)^2=\left(a_\uparrow^\dagger a_\downarrow^\dagger b_\downarrow b_\uparrow +h.c.\right)-\left( \sum_{\sigma \sigma'} a_\sigma^\dagger a_{\sigma '}b_{\sigma'}^\dagger b_\sigma \right)
 $$
@@ -42,3 +46,8 @@ $$
 $$
 
 + In fact, the V-term can also be written as $V(\sum_a n_a-N)^2$, which however yields a complex HS field and may bring severe sign problem. Nevertheless, it deserves a try.
++ For a N-orbital model:
+  + when J=J'=0, U=V, we get SU(2N) Hubbard model with an SU(2N)-HS field
+  + when V=0, J=J'=U/2, we get an SU(2)$\times$SU(N) HS field.
+  + if all UVJ-terms are decoupled using complex HS fields, sign problem is gone?!
+

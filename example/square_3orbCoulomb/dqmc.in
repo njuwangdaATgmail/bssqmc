@@ -1,0 +1,200 @@
+ !------------------------------------------------!
+ !           Monte Carlo control block            !
+ !------------------------------------------------!
+                                       F          !restart
+                                       F          !proj
+                                       2          !nflv
+                                1.000000          !beta
+                                0.100000          !dtau
+                                       1          !nsp
+                                      2          !nbin
+                                    1000          !nwarmup
+                                    1000          !nmeasure
+                                       1          !ninterval
+                                     100          !ntmpout
+                                       5          !nscratch
+                                      10          !ngroup
+                                   12321          !randomseed
+                                0.000000          !newMetro
+
+ !------------------------------------------------!
+ !           fermion lattice block                !
+ !------------------------------------------------!
+                                       3          !norb
+                   4         4         1          !La,Lb,Lc
+                            24        24          !nelec
+                             1         1          !ncopy
+                   T         T         F          !pbca,pbcb,pbcc
+            0.000000  0.000000  0.000000          !twista,twistb,twistc in unit of 2pi
+            1.000000  0.000000  0.000000          !a0r
+            0.000000  1.000000  0.000000          !b0r
+            0.000000  0.000000  1.000000          !c0r
+            0.000000  0.000000  0.000000          !rorb- 1
+            0.000000  0.000000  0.000000          !rorb- 2
+            0.000000  0.000000  0.000000          !rorb- 3
+                   3         1         1          !cuta,cutb,cutc
+                                       6          !nhop
+   1   0   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   1   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   1   0   0   2   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   1   0   2   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   1   0   0   3   3 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   1   0   3   3 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+
+ !------------------------------------------------!
+ !           boson field block                    !
+ !------------------------------------------------!
+         3         7         3         4          !n_g,nfield,max_ndim_field,max_isingmax
+
+                                                  !setting block of U
+                             1         3          !type_field, n_checkerboard
+            -1.00000  0.000000  0.000000          !g_field
+  0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
+                        100000         0          !ninterval_global, global_method
+                                       1          !ndim_field
+                                                  !fmat(:,:) for flv=   1
+                                1.0  0.0
+                                                  !fmat(:,:) for flv=   2
+                               -1.0  0.0
+                                                  !for checkboard   1
+         0         0         0         1          !da,db,dc,orb for basis   1
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+                                                  !for checkboard   2
+         0         0         0         2          !da,db,dc,orb for basis   1
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+                                                  !for checkboard   3
+         0         0         0         3          !da,db,dc,orb for basis   1
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+
+                                                  !setting block of V
+                             2         3          !type_field, n_checkerboard
+           -2.000000  0.000000  0.000000          !g_field
+  0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
+                        100000         0          !ninterval_global, global_method
+                                       2          !ndim_field
+                                                  !fmat(:,:) for flv=   1
+                      1.0  0.0  0.0  0.0
+                      0.0  0.0 -1.0 -0.0
+                                                  !fmat(:,:) for flv=   2
+                      1.0  0.0  0.0  0.0
+                      0.0  0.0 -1.0 -0.0
+                                                  !for checkboard   1
+         0         0         0         1          !da,db,dc,orb for basis   1
+         0         0         0         2          !da,db,dc,orb for basis   2
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+                                                  !for checkboard   2
+         0         0         0         2          !da,db,dc,orb for basis   1
+         0         0         0         3          !da,db,dc,orb for basis   2
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+                                                  !for checkboard   3
+         0         0         0         3          !da,db,dc,orb for basis   1
+         0         0         0         1          !da,db,dc,orb for basis   2
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+
+                                                  !setting block of J
+                             3         1          !type_field, n_checkerboard
+            0.500000  0.000000  0.000000          !g_field
+  0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
+                        100000         0          !ninterval_global, global_method
+                                       3          !ndim_field
+                                                  !fmat(:,:) for flv=   1
+            0.0  0.0  1.0  0.0  1.0  0.0
+            1.0  0.0  0.0  0.0  1.0  0.0
+            1.0  0.0  1.0  0.0  0.0  0.0 
+                                                  !fmat(:,:) for flv=   2
+            0.0  0.0  1.0  0.0  1.0  0.0
+            1.0  0.0  0.0  0.0  1.0  0.0
+            1.0  0.0  1.0  0.0  0.0  0.0 
+                                                  !for checkboard   1
+         0         0         0         1          !da,db,dc,orb for basis   1
+         0         0         0         2          !da,db,dc,orb for basis   2
+         0         0         0         3          !da,db,dc,orb for basis   3
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+
+ !------------------------------------------------!
+ !           measurement block                    !
+ !------------------------------------------------!
+                                       2          !nk_meas
+                   0         0         0
+                   2         2         0
+
+                                       3          !nr_meas
+                   0         0         0
+                   1         0         0
+                   1         1         0
+
+                                       0          !nrr_meas
+
+                                      10          !ntau_meas
+
+                             6         2          !n_ph_meas,max_ndim_ph_meas
+                                                  !setting block for PH-   1
+                             T         T          !hartree_ph_meas,fork_ph_meas
+                   2                  na          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0    0    0    1    2
+                                                  !fmat_ph_meas(:,:) for PH-   1
+                      1.0  0.0  0.0  0.0
+                      0.0  0.0  1.0  0.0
+                                                  !setting block for PH-   2
+                             T         T          !hartree_ph_meas,fork_ph_meas
+                   2                  nb          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                   0    0    0    2    2
+                                                  !fmat_ph_meas(:,:) for PH-   2
+                      1.0  0.0  0.0  0.0
+                      0.0  0.0  1.0  0.0
+                                                  !setting block for PH-   3
+                             T         T          !hartree_ph_meas,fork_ph_meas
+                   2                  nc          !ndim_ph_meas, name_ph_meas
+                   0    0    0    3    1          !da,db,dc,orb,flv
+                   0    0    0    3    2
+                                                  !fmat_ph_meas(:,:) for PH-   3
+                      1.0  0.0  0.0  0.0
+                      0.0  0.0  1.0  0.0
+                                                  !setting block for PH-   4
+                             T         T          !hartree_ph_meas,fork_ph_meas
+                   2                 sax          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0    0    0    1    2
+                                                  !fmat_ph_meas(:,:) for PH-   4
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+                                                  !setting block for PH-   5
+                             T         T          !hartree_ph_meas,fork_ph_meas
+                   2                 sbx          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                   0    0    0    2    2
+                                                  !fmat_ph_meas(:,:) for PH-   5
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+                                                  !setting block for PH-   6
+                             T         T          !hartree_ph_meas,fork_ph_meas
+                   2                 scx          !ndim_ph_meas, name_ph_meas
+                   0    0    0    3    1          !da,db,dc,orb,flv
+                   0    0    0    3    2
+                                                  !fmat_ph_meas(:,:) for PH-   6
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                             0         0          !n_pp_meas,max_ndim_pp_meas
+
+                                       2          !ncross_ph_meas
+                                    nanb          !name of the channel
+                             1         2          !cross_ph_meas
+                                  saxsbx          !name of the channel
+                             4         5          !cross_ph_meas
+
+                                       0          !ncross_pp_meas
+
+                                       T          !FAtech
+                             F         0          !do_measurement_external, n_meas_external
+                                       F          !do_tmpout_external
+                                       F          !do_postprocess_external
