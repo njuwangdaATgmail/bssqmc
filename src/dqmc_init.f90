@@ -115,7 +115,7 @@ SUBROUTINE init()
   READ(10,*) n_g, nfield, max_ndim_field, max_isingmax
 
   ALLOCATE( type_field(nfield)                          ); type_field       = 0
-  ALLOCATE( g_field(3,nfield)                             ); g_field          = 0d0
+  ALLOCATE( g_field(3,nfield)                           ); g_field          = 0d0
   ALLOCATE( isingmax(nfield)                            ); isingmax         = 0
   ALLOCATE( dphi(nfield)                                ); dphi             = 0d0
   ALLOCATE( dphi_global(nfield)                         ); dphi_global      = 0d0
@@ -134,6 +134,10 @@ SUBROUTINE init()
   DO i_g=1,n_g
 
     ifield=ifield+1
+    IF(ifield>nfield)THEN
+      IF(id==0) PRINT*,'please input the correct value of nfield'
+      CALL exit(0)
+    END IF
 
     READ(10,*) type_field(ifield), n_checkerboard
 
@@ -270,6 +274,12 @@ SUBROUTINE init()
     ifield=ifield+n_checkerboard-1
 
   END DO
+
+  ! in case of wrong vaule of nfield given by user
+  IF(nfield/=ifield)THEN
+    IF(id==0) PRINT*,'nfield is reset to', ifield
+    nfield=ifield  
+  END IF
 
   CALL set_expf()
   CALL set_isingflip()
