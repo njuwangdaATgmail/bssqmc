@@ -999,7 +999,7 @@ SUBROUTINE measurement(time)
           obr=0d0; obr_=0d0
         END IF
         IF(nrr_meas>0)THEN
-          ALLOCATE(obrr(nrr_meas),obrr_(nr_meas))
+          ALLOCATE(obrr(nrr_meas),obrr_(nrr_meas))
           obrr=0d0; obrr_=0d0
         END IF
 
@@ -1329,7 +1329,7 @@ SUBROUTINE measurement(time)
           obr=0d0; obr_=0d0
         END IF
         IF(nrr_meas>0)THEN
-          ALLOCATE(obrr(nrr_meas),obrr_(nr_meas))
+          ALLOCATE(obrr(nrr_meas),obrr_(nrr_meas))
           obrr=0d0; obrr_=0d0
         END IF
 
