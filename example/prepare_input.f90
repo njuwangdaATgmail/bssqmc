@@ -11,7 +11,7 @@ PROGRAM main
   COMPLEX(8), DIMENSION(2,2) :: s0,s1,s2,s3,z0
   COMPLEX(8), DIMENSION(4,4) :: s0t0,s0t1,s0t2,s0t3,s1t0,s1t1,s1t2,s1t3,&
     &                           s2t0,s2t1,s2t2,s2t3,s3t0,s3t1,s3t2,s3t3
-  INTEGER i1,i2,i3,i4,i5,i6,nflv,norb,i,j,k,flv,n_g,nfield,ncond,d,n_checkerboard,n2,err
+  INTEGER i1,i2,i3,i4,i5,i6,nflv,norb,i,j,k,flv,n_g,nfield,ncond,d,n_checkerboard,n2,err,method
   REAL(8) r1,r2,r3,r4
   COMPLEX(8) z1,z2,z3,z4
   LOGICAL l1,l2,l3,l4
@@ -402,42 +402,67 @@ PROGRAM main
   WRITE(10,*) '!           measurement block                    !'
   WRITE(10,*) '!------------------------------------------------!'
 
-  PRINT*,'>>nk_meas: how many k-points to measure'
-  i1=0
-  CALL saferead(i1); k=i1
-  WRITE(10,'(1i40,10x,a)') i1,'!nk_meas'
+  PRINT*,'>>nk_meas,k_method: how many k-points to measure and choose input method'
+  PRINT*,'>>  - method = 0: input a,b,c, while ka=2*pi*a/La, kb=2*pi*b/Lb, kc=2*pi*c/Lc'
+  PRINT*,'>>          /= 0: input ka,kb,kc in unit of 2*pi'
+  ivec(1:2)=0
+  CALL saferead(2,ivec); k=ivec(1); method=ivec(2)
+  WRITE(10,'(20x,2i10,10x,a)') ivec(1:2),'!nk_meas,k_method'
   
-  IF(k>0) PRINT*,'>>input the k_array defined by (a,b,c) below: (ka,kb,kc)=(a,b,c)*2*pi/(La,Lb,Lc)'
+  IF(k>0) PRINT*,'>>input the k_array below:'
   DO i=1,k
-    ivec(1:3)=(/0,0,0/)
-    CALL saferead(3,ivec)
-    WRITE(10,'(10x,3i10,10x)') ivec(1:3)
+    IF(method==0)THEN
+      ivec(1:3)=(/0,0,0/)
+      CALL saferead(3,ivec)
+      WRITE(10,'(10x,3i10,10x)') ivec(1:3)
+    ELSE
+      rvec(1:3)=(/0d0,0d0,0d0/)
+      CALL saferead(3,rvec)
+      WRITE(10,'(10X,3f10.4,10x)') rvec(1:3)
+    END IF
   END DO
   
   WRITE(10,*)
-  PRINT*,'>>nr_meas: how many (relative) r-points to measure'
-  i1=0
-  CALL saferead(i1); k=i1
-  WRITE(10,'(1i40,10x,a)') i1,'!nr_meas'
+  PRINT*,'>>nr_meas,r_method: how many (relative) r-points to measure and choose input method'
+  PRINT*,'>>  - method = 0: input a,b,c directly'
+  PRINT*,'>>          /= 0: input a/La, b/Lb, c/Lc'
+  ivec(1:2)=0
+  CALL saferead(2,ivec); k=ivec(1); method=ivec(2)
+  WRITE(10,'(20x,2i10,10x,a)') ivec(1:2),'!nr_meas,r_method'
   
-  IF(k>0) PRINT*,">>input the r_array defined by (a,b,c) below: G(a,b,c)=<O(x+a,y+b,z+c)O'(x,y,z)>"
+  IF(k>0) PRINT*,">>input the r_array below:"
   DO i=1,k
-    ivec(1:3)=(/0,0,0/)
-    CALL saferead(3,ivec)
-    WRITE(10,'(10x,3i10,10x)') ivec(1:3)
+    IF(method==0)THEN
+      ivec(1:3)=(/0,0,0/)
+      CALL saferead(3,ivec)
+      WRITE(10,'(10x,3i10,10x)') ivec(1:3)
+    ELSE
+      rvec(1:3)=(/0d0,0d0,0d0/)
+      CALL saferead(3,rvec)
+      WRITE(10,'(10x,3f10.4,10x)') rvec(1:3)
+    END IF
   END DO
 
   WRITE(10,*)
-  PRINT*,'>>nrr_meas: how many rr-points to measure (useful in models without translation symmetry)'
-  i1=0
-  CALL saferead(i1); k=i1
-  WRITE(10,'(1i40,10x,a)') i1,'!nrr_meas'
+  PRINT*,'>>nrr_meas,rr_method: how many rr-points to measure and choose input method'
+  PRINT*,'>>                    (useful in models without translation symmetry)'
+  PRINT*,'>>  - method = 0: input a,b,c,a2,b2,c2 directly'
+  PRINT*,'>>          /= 0: input a/La,b/Lb,c/Lc,a2/La,b2/Lb,c2/Lc'
+  ivec(1:2)=0
+  CALL saferead(2,ivec); k=ivec(1); method=ivec(2)
+  WRITE(10,'(20x,2i10,10x,a)') ivec(1:2),'!nrr_meas,rr_method'
   
-  IF(k>0) PRINT*,">>input the rr_array defined by (a,b,c,a2,b2,c2) below: G(a,b,c,a2,b2,c2)=<O(a,b,c)O'(a2,b2,c2)>"
+  IF(k>0) PRINT*,">>input the rr_array below:"
   DO i=1,k
-    ivec(1:6)=(/1,1,1,1,1,1/)
-    CALL saferead(6,ivec)
-    WRITE(10,'(10x,6i5)') ivec(1:6)
+    IF(method==0)THEN
+      ivec(1:6)=(/1,1,1,1,1,1/)
+      CALL saferead(6,ivec)
+      WRITE(10,'(10x,6i5)') ivec(1:6)
+    ELSE
+      rvec(1:6)=0d0
+      CALL saferead(6,rvec)
+      WRITE(10,'(4x,6f6.3,10x)') rvec(1:6)
+    END IF
   END DO
 
   WRITE(10,*)
@@ -652,7 +677,7 @@ PROGRAM main
     PRINT*,'>>name of the channel'
     str='default_cross_ph'
     CALL saferead(str)
-    WRITE(10,'(20x,1a20,10x,a)') trim(adjustl(str)),'!name of the channel'
+    WRITE(10,'(20x,1a20,10x,a,1i4)') trim(adjustl(str)),'!name of the channel',i
     PRINT*,'>>which two channels are correlated?'
     ivec(1:2)=(/1,2/)
     CALL saferead(2,ivec)
@@ -669,7 +694,7 @@ PROGRAM main
     PRINT*,'>>name of the channel'
     str='default_cross_pp'
     CALL saferead(str)
-    WRITE(10,'(20x,1a20,10x,a)') trim(adjustl(str)),'!name of the channel'
+    WRITE(10,'(20x,1a20,10x,a,1i4)') trim(adjustl(str)),'!name of the channel',i
     PRINT*,'>>which two channels are correlated?'
     ivec(1:2)=(/1,2/)
     CALL saferead(2,ivec)
