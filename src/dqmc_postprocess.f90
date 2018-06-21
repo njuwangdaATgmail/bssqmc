@@ -14,10 +14,13 @@ SUBROUTINE postprocess()
   COMPLEX(8), ALLOCATABLE :: obrr_pp(:,:,:), obrr_pp_err(:,:,:)
   IF(id.ne.0)RETURN
 
+  OPEN(10,file='general.dat')
   CALL get_pool(x,dx)
   PRINT*, 'sign average:', x, dx
+  WRITE(10,*) 'sign average:', x, dx
   CALL get_pool(x,dx)
   PRINT*, 'kinetic energy:', x, dx
+  WRITE(10,*) 'kinetic energy:', x, dx
 
   !---------------------------------------------
   !  get averaged values from the measurement pool
