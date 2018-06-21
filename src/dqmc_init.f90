@@ -4,9 +4,9 @@ SUBROUTINE init()
   IMPLICIT NONE
 
   INTEGER i,j,k,nhop,da,db,dc,orb,orb2,flv,i2,a,b,c,a2,b2,c2,n_checkerboard,n_cond,i_checkerboard
-  INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external,ierr
-  INTEGER n_g, i_g, max_ndim_field, max_isingmax, max_ndim_ph_meas, max_ndim_pp_meas
-  REAL(8) re,re2,re3,re4
+  INTEGER ma,mb,mc,moda,modb,modc,ifield,pool_size,n_meas_external,ierr,method
+  INTEGER n_g,i_g,max_ndim_field,max_isingmax,max_ndim_ph_meas,max_ndim_pp_meas
+  REAL(8) re,re1,re2,re3,re4,re5,re6
   COMPLEX(8) hopvalue,ga1,lam1,ga2,lam2
   REAL(8), ALLOCATABLE :: rvec(:)
 
@@ -290,10 +290,17 @@ SUBROUTINE init()
 
   ! set k_array
   ! it can be set automatically, e.g. full-BZ-mesh, along a cut, as a todo
-  READ(10,*) nk_meas
+  READ(10,*) nk_meas, method
   IF(nk_meas>0) ALLOCATE(k_array(3,nk_meas),expikr_array(nk_meas,1-La:La-1,1-Lb:Lb-1,1-Lc:Lc-1))
   DO i=1,nk_meas
-    READ(10,*) k_array(:,i)
+    IF(method==0)THEN
+      READ(10,*) k_array(:,i)
+    ELSE
+      READ(10,*) re1,re2,re3
+      k_array(1,i)=nint(re1*La)
+      k_array(2,i)=nint(re2*Lb)
+      k_array(3,i)=nint(re3*Lc)
+    END IF
     DO da=1-La,La-1; DO db=1-Lb,Lb-1; DO dc=1-Lc,Lc-1
       expikr_array(i,da,db,dc)=exp(dcmplx(0d0,twopi*(k_array(1,i)*da*1d0/La &
         & +k_array(2,i)*db*1d0/Lb+k_array(3,i)*dc*1d0/Lc)))
@@ -302,17 +309,34 @@ SUBROUTINE init()
 
 
   ! set r_array
-  READ(10,*) nr_meas
+  READ(10,*) nr_meas, method
   IF(nr_meas>0) ALLOCATE(r_array(3,nr_meas))
   DO i=1,nr_meas
-    READ(10,*) r_array(:,i)
+    IF(method==0)THEN
+      READ(10,*) r_array(:,i)
+    ELSE
+      READ(10,*) re1,re2,re3
+      r_array(1,i)=nint(re1*La)
+      r_array(2,i)=nint(re2*Lb)
+      r_array(3,i)=nint(re3*Lc)
+    END IF
   END DO
 
   ! set rr_array
-  READ(10,*) nrr_meas
+  READ(10,*) nrr_meas, method
   IF(nrr_meas>0) ALLOCATE(rr_array(3,2,nrr_meas))
   DO i=1,nrr_meas
-    READ(10,*) rr_array(:,1,i),rr_array(:,2,i)
+    IF(method==0)THEN
+      READ(10,*) rr_array(:,1,i),rr_array(:,2,i)
+    ELSE
+      READ(10,*) re1,re2,re3,re4,re5,re6
+      rr_array(1,1,i)=nint(re1*La)
+      rr_array(2,1,i)=nint(re2*Lb)
+      rr_array(3,1,i)=nint(re3*Lc)
+      rr_array(1,2,i)=nint(re4*La)
+      rr_array(2,2,i)=nint(re5*Lb)
+      rr_array(3,2,i)=nint(re6*Lc)
+    END IF
   END DO
 
   READ(10,*) ntau_meas
