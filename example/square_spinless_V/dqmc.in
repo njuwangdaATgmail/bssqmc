@@ -64,13 +64,13 @@
  !------------------------------------------------!
  !           measurement block                    !
  !------------------------------------------------!
-                                       2          !nk_meas
+                                       2 0          !nk_meas
                    0         0         0
                    2         2         0
-                                       2          !nr_meas
+                                       2 0        !nr_meas
                    0         0         0
                    1         0         0
-                                       0          !nrr_meas
+                                       0 0        !nrr_meas
                                       10          !ntau_meas
                              1         1          !n_ph_meas,max_ndim_ph_meas
                              T         T          !hartree_ph_meas,fork_ph_meas

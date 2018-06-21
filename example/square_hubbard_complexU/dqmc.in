@@ -2,16 +2,16 @@
  #           Monte Carlo control block          
  #------------------------------------------------
                                        F          :restart
-                                       F          :proj
+                                       f          :proj
                                        1          :nflv
-                                4.000000          :beta
+                                6.000000          :beta
                                 0.100000          :dtau
                                        2          :nsp
-                                       2          :nbin
+                                       10          :nbin
                                     1000          :nwarmup
-                                    1000          :nmeasure
+                                    10000          :nmeasure
                                        1          :ninterval
-                                     100          :ntmpout
+                                     1000          :ntmpout
                                       10          :nscratch
                                       10          :ngroup
                                    12321          :randomseed
@@ -20,10 +20,10 @@
  #           fermion lattice block          
  #------------------------------------------------
                                        1          :norb
-                   4         4         1          :La,Lb,Lc
-         8          :nelec
-         2          :ncopy
-                   T         T         F          :pbca,pbcb,pbcc
+                   2         1         1          :La,Lb,Lc
+         1          :nelec
+         6          :ncopy
+                   T         f         F          :pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          :twista,twistb,twistc in unit of 2pi
             1.000000  0.000000  0.000000          :a0r
             0.000000  1.000000  0.000000          :b0r
@@ -38,7 +38,7 @@
  #------------------------------------------------
          1         1         1         2          :n_g,nfield,max_ndim_field,max_isingmax
                              1         1          :type_field, n_checkerboard
-            4.000000  1.000000  0.000000          :g_field
+            4.000000  3.000000  0.000000          :g_field
   0.000000  0.000000  0.000000  0.000000          :dphi, dphi_global
                     1000000000         0          :ninterval_global, global_method
                                        1          :ndim_field
@@ -49,20 +49,17 @@
  #------------------------------------------------
  #           measurement block          
  #------------------------------------------------
-                                       2          :nk_meas
-                   0         0         0
-                   2         2         0
-                                       4          :nr_meas
+                                       2 0          :nk_meas
                    0         0         0
                    1         0         0
-                   2         0         0
-                   3         0         0
-                                       4          :nrr_meas
-                         1 1 1 1 1 1
-                         1 1 1 2 1 1
-                         1 1 1 1 2 1
-                         1 1 1 2 2 1
-                                      10          :ntau_meas
+                                       2 0        :nr_meas
+                   0         0         0
+                   1         0         0
+                                       3 0        :nrr_meas
+                            1 1 1 1 1 1
+                            2 1 1 2 1 1
+                            1 1 1 2 1 1 
+                                      0          :ntau_meas
                              3         1          :n_ph_meas,max_ndim_ph_meas
                              T         F          :hartree_ph_meas,fork_ph_meas
                    1             doublon          :ndim_ph_meas, name_ph_meas

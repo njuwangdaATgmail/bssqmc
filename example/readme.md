@@ -29,7 +29,7 @@ Their suitable combinations, e.g.:
 
 ### Multi-orbital Coulomb interactions
 
-+ Kanamori parameters: (see e.g. Hotta, 2006; XY Deng, thesis) 
++ Kanamori parameters: (see e.g. Hotta, 2006; XY Deng, thesis; YY Xiang, thesis) 
   + J=J' only without spin-orbit coupling
   + U=V+J+J' only for rotational symmetrical system (e.g. among Eg or t2g orbitals, or isolated atom)
 
@@ -42,12 +42,10 @@ based on which complex HS decoupling can be performed. Spin is still a good quan
 + The density-density interactions can be decoupled in density channel directly. 
 
 $$
--\frac{V}{2}\sum_{a<b} \left(n_a-n_b\right)^2-\frac{U}{2}\sum_a\left(n_{a\uparrow}-n_{a\downarrow}\right)^2
+-\frac{V}{2}\sum_{a<b} \left(n_a-n_b\right)^2-\frac{U+V}{2}\sum_a\left(n_{a\uparrow}-n_{a\downarrow}\right)^2+\frac{J}{2}\sum_{a<b}\left(\sum_{\sigma} a^\dagger_\sigma b_\sigma+h.c.\right)^2
 $$
 
-+ In fact, the V-term can also be written as $V(\sum_a n_a-N)^2$, which however yields a complex HS field and may bring severe sign problem. Nevertheless, it deserves a try.
-+ For a N-orbital model:
-  + when J=J'=0, U=V, we get SU(2N) Hubbard model with an SU(2N)-HS field
-  + when V=0, J=J'=U/2, we get an SU(2)$\times$SU(N) HS field.
-  + if all UVJ-terms are decoupled using complex HS fields, sign problem is gone?!
-
++ All UVJ-terms can be decoupled using complex HS fields, sign problem is gone (on a bipartite lattice with PH symmetry).
+  $$
+  \frac{V}{2} \left(\sum_{a\sigma} n_{a\sigma} -N\right)^2+\frac{U-V}{2}\sum_a\left(\sum_\sigma n_{a\sigma}-1\right)^2+\frac{J}{2}\sum_{a<b}\left(\sum_{\sigma} a^\dagger_\sigma b_\sigma+h.c.\right)^2.
+  $$
