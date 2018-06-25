@@ -476,7 +476,11 @@ SUBROUTINE regular_input()
     IF(stat/=0) exit
     str2=trim(adjustl(str))
     IF(str2(1:1)=='#'.or.str2(1:1)=='!'.or.str2(1:1)==':'.or.len(trim(adjustl(str2)))==0)CYCLE
-    WRITE(20,*) trim(adjustl(str2))
+    WRITE(20,'(a)',advance='no') trim(adjustl(str2))
+    ! unfortunately, advance='no' does not work for intel compiler!
+    ! For ifort, we need change this line to
+    ! WRITE(20,'(a,\)') trim(adjustl(str2)), which doesn't work in gfortran either.
+    WRITE(20,*)
   END DO
   CLOSE(10)
   CLOSE(20)
