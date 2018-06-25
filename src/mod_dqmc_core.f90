@@ -466,7 +466,7 @@ CONTAINS
     LOGICAL, INTENT(IN) :: do_meas
     INTEGER time,site,ifield,ndim,j,a,b,sitea,siteb,flv
     REAL(8) paccept
-    COMPLEX(8) ratio(nflv),rtot,newfield,oldfield,delta_ja,gtmp(nsite,nsite)
+    COMPLEX(8) ratio(nflv),rtot,newfield,oldfield,delta_ja,gtmp2(nsite,nsite),gtmp(nsite,maxval(ndim_field))
     COMPLEX(8) delta(maxval(ndim_field),maxval(ndim_field),nflv)
     COMPLEX(8) ratiomat(maxval(ndim_field),maxval(ndim_field),nflv)
 
@@ -575,28 +575,31 @@ CONTAINS
           ! update Green's function based on Dyson equation
           IF(ndim==1)THEN
             DO flv=1,nflv
-              gtmp=g(:,:,flv)
+              delta(1,1,flv)=delta(1,1,flv)/ratiomat(1,1,flv)
+              gtmp(:,1)=g(:,site,flv)*delta(1,1,flv)
+              gtmp(site,1)=gtmp(site,1)-delta(1,1,flv)
               DO j=1,nsite
-                delta_ja=0d0
-                IF(j==site)delta_ja=1d0
-                gtmp(j,:)=gtmp(j,:)+(g(j,site,flv)-delta_ja)*delta(1,1,flv)/ratiomat(1,1,flv)*g(site,:,flv)
+                g(:,j,flv)=g(:,j,flv)+gtmp(:,1)*g(site,j,flv)
               END DO
-              g(:,:,flv)=gtmp
             END DO
           ELSE
             DO flv=1,nflv
               CALL inverse(ndim,ratiomat(1:ndim,1:ndim,flv))
               delta(1:ndim,1:ndim,flv)=matmul(delta(1:ndim,1:ndim,flv),ratiomat(1:ndim,1:ndim,flv))
-              gtmp=g(:,:,flv)
-              DO j=1,nsite
-                DO a=1,ndim; sitea=nb_field(site,a,ifield)
-                  delta_ja=0d0; IF(j==sitea) delta_ja=1d0
-                  DO b=1,ndim; siteb=nb_field(site,b,ifield)
-                    gtmp(j,:)=gtmp(j,:)+(g(j,sitea,flv)-delta_ja)*delta(a,b,flv)*g(siteb,:,flv)
-                  END DO
+              DO a=1,ndim
+                sitea=nb_field(site,a,ifield)
+                gtmp(:,a)=g(:,sitea,flv)
+                gtmp(sitea,a)=gtmp(sitea,a)-1d0
+              END DO
+              gtmp(:,1:ndim)=matmul(gtmp(:,1:ndim),delta(1:ndim,1:ndim,flv))
+              gtmp2(:,:)=0d0
+              DO a=1,ndim
+                sitea=nb_field(site,a,ifield)
+                DO j=1,nsite
+                  gtmp2(:,j)=gtmp2(:,j)+gtmp(:,a)*g(sitea,j,flv)
                 END DO
               END DO
-              g(:,:,flv)=gtmp
+              g(:,:,flv)=g(:,:,flv)+gtmp2
             END DO
           END IF
 
