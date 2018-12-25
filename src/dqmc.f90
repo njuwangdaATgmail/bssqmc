@@ -217,6 +217,7 @@ CONTAINS
     label=(a-1)*Lb*Lc*norb+(b-1)*Lc*norb+(c-1)*norb+orb
   END FUNCTION
 
+
   ! set kinetic Hamiltonian matrix
   SUBROUTINE set_kmat()
     IMPLICIT NONE
@@ -301,6 +302,90 @@ CONTAINS
     END DO; END DO; END DO; END DO
 
   END SUBROUTINE set_kmat
+  ! set kinetic Hamiltonian matrix
+  SUBROUTINE set_kmat_trying()
+    IMPLICIT NONE
+    REAL(8), PARAMETER :: twopi=acos(-1d0)*2
+    INTEGER a,b,c,orb,i,flv
+    INTEGER a2,b2,c2,orb2,i2
+    INTEGER da,db,dc
+    COMPLEX(8) boundary
+
+    IF(.not.allocated(kmat)) ALLOCATE(kmat(La*Lb*Lc*norb,La*Lb*Lc*norb,nflv))
+
+    kmat=0d0
+
+    DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(a,b,c,orb)
+      DO da=-cuta,cuta; DO db=-cutb,cutb; DO dc=-cutc,cutc; DO orb2=1,norb
+
+        a2=a+da; b2=b+db; c2=c+dc
+
+        IF(a2>=1.and.a2<=La.and.b2>=1.and.b2<=Lb.and.c2>=1.and.c2<=Lc)THEN ! without crossing the boundary
+
+          i2=label(a2,b2,c2,orb2)
+
+          DO flv=1,nflv
+            kmat(i,i2,flv)=hop(da,db,dc,orb,orb2,flv)
+            !kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
+          END DO
+
+        ELSE ! crossing the boundary
+
+          IF(a2<1.and.(.not.pbca))CYCLE
+          IF(b2<1.and.(.not.pbcb))CYCLE
+          IF(c2<1.and.(.not.pbcc))CYCLE
+
+          IF(a2>La.and.(.not.pbca))CYCLE
+          IF(b2>Lb.and.(.not.pbcb))CYCLE
+          if(c2>Lc.and.(.not.pbcc))CYCLE
+
+          boundary=1d0
+
+          IF(a2<1)THEN
+            boundary=boundary*exp(dcmplx(0d0,-twista*twopi))
+            a2=a2+La
+          END IF
+
+          IF(a2>La)THEN
+            boundary=boundary*exp(dcmplx(0d0,twista*twopi))
+            a2=a2-La
+          END IF
+
+          IF(b2<1)THEN
+            boundary=boundary*exp(dcmplx(0d0,-twistb*twopi))
+            b2=b2+Lb
+          END IF
+
+          IF(b2>Lb)THEN
+            boundary=boundary*exp(dcmplx(0d0,twistb*twopi))
+            b2=b2-Lb
+          END IF
+
+          IF(c2<1)THEN
+            boundary=boundary*exp(dcmplx(0d0,-twistc*twopi))
+            c2=c2+Lc
+          END IF
+
+          IF(c2>Lc)THEN
+            boundary=boundary*exp(dcmplx(0d0,twistc*twopi))
+            c2=c2-Lc
+          END IF
+
+          IF(a2==a.and.b2==b.and.c2==c)CYCLE
+
+          i2=label(a2,b2,c2,orb2)
+
+          DO flv=1,nflv
+            kmat(i,i2,flv)=(1+0.01*drand_sym())*hop(da,db,dc,orb,orb2,flv)*boundary
+            kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
+          END DO
+
+        END IF
+
+      END DO; END DO; END DO; END DO
+    END DO; END DO; END DO; END DO
+
+  END SUBROUTINE set_kmat_trying
 
   ! set exp(K)=exp(-dtau*H0)
   ! NOTICE: before calling this subroutine, kmat must be generated
@@ -345,14 +430,17 @@ CONTAINS
     IF(.not.allocated(slater_Q))ALLOCATE(slater_Q(nsite,maxval(nelec),nflv))
     IF(.not.allocated(slater_D))ALLOCATE(slater_D(maxval(nelec),nflv))
     IF(.not.allocated(slater_R))ALLOCATE(slater_R(maxval(nelec),maxval(nelec),nflv))
+    open(39,file='eval.dat')
     DO flv=1,nflv
       CALL eigen(nsite,kmat(:,:,flv),eval)
+      write(39,'(1e12.6)') eval
       slater(:,1:nelec(flv),flv)=kmat(:,1:nelec(flv),flv)
       slater(:,1:nelec(flv),flv)=matmul(expk_half(:,:,flv),slater(:,1:nelec(flv),flv))
       slater_Q(:,1:nelec(flv),flv)=slater(:,1:nelec(flv),flv)
       CALL qdr(nsite,nelec(flv),slater_Q(:,1:nelec(flv),flv),slater_R(1:nelec(flv),1:nelec(flv),flv), &
         & slater_D(1:nelec(flv),flv))
     END DO
+    close(39)
   END SUBROUTINE
 
   !

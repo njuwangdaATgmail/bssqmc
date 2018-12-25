@@ -96,10 +96,10 @@ SUBROUTINE init()
   CALL set_kmat(); CALL set_expk()
 
   IF(proj)THEN
-    re=twista; re2=twistb; re3=twistc
-    twista=3d0/17; twistb=3d0/13; twistc=3d0/7
-    CALL set_kmat(); CALL set_slater()
-    twista=re; twistb=re2; twistc=re3
+    !re=twista; re2=twistb; re3=twistc
+    !twista=3d0/17; twistb=3d0/13; twistc=3d0/7
+    CALL set_kmat_trying(); CALL set_slater()
+    !twista=re; twistb=re2; twistc=re3
   END IF
 
   CALL set_kmat()

@@ -1,0 +1,76 @@
+ !------------------------------------------------!
+ !           Monte Carlo control block            !
+ !------------------------------------------------!
+                                      f          !restart
+                                       F          !proj
+                                       1          !nflv
+                                1.000000          !beta
+                                0.100000          !dtau
+                                       1          !nsp
+                                      10          !nbin
+                                    1000          !nwarmup
+                                    1000          !nmeasure
+                                       1          !ninterval
+                                     100          !ntmpout
+                                      10          !nscratch
+                                      10          !ngroup
+                                   12321          !randomseed
+                                0.000000          !newMetro
+
+ !------------------------------------------------!
+ !           fermion lattice block                !
+ !------------------------------------------------!
+                                       1          !norb
+                   4         4         1          !La,Lb,Lc
+                                       8          !nelec
+                                       1          !ncopy
+                   T         T         F          !pbca,pbcb,pbcc
+            0.000000  0.000000  0.000000          !twista,twistb,twistc in unit of 2pi
+            1.000000  0.000000  0.000000          !a0r
+            0.000000  1.000000  0.000000          !b0r
+            0.000000  0.000000  1.000000          !c0r
+            0.000000  0.000000  0.000000          !rorb- 1
+                   1         1         1          !cuta,cutb,cutc
+                                       0          !nhop
+
+ !------------------------------------------------!
+ !           boson field block                    !
+ !------------------------------------------------!
+         1         1         1         2          !n_g,nfield,max_ndim_field,max_isingmax
+
+                                                  !setting block of interaction_1
+                             1         1          !type_field, n_checkerboard
+            4.000000  1.000000  0.000000          !g_field
+  0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
+                        100000         0          !ninterval_global, global_method
+                                       1          !ndim_field
+                                                  !fmat(:,:) for flv=   1
+                                1.0  0.0
+                                                  !for checkboard   1
+         0         0         0         1          !da,db,dc,orb for basis   1
+                                       1          !n_cond
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+
+ !------------------------------------------------!
+ !           measurement block                    !
+ !------------------------------------------------!
+                             0         0          !nk_meas,k_method
+
+                             0         0          !nr_meas,r_method
+
+                             0         0          !nrr_meas,rr_method
+
+                                       0          !ntau_meas
+
+                             0         0          !n_ph_meas,max_ndim_ph_meas
+
+                             0         0          !n_pp_meas,max_ndim_pp_meas
+
+                                       0          !ncross_ph_meas
+
+                                       0          !ncross_pp_meas
+
+                                       T          !FAtech
+                             F         0          !do_measurement_external, n_meas_external
+                                       F          !do_tmpout_external
+                                       F          !do_postprocess_external
