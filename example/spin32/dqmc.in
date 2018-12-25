@@ -2,12 +2,12 @@
  !           Monte Carlo control block            !
  !------------------------------------------------!
                                        F          !restart
-                                       F          !proj
+                                       t          !proj
                                        1          !nflv
-                                1.000000          !beta
+                                4.000000          !beta
                                 0.100000          !dtau
                                        1          !nsp
-                                      10          !nbin
+                                       1          !nbin
                                     1000          !nwarmup
                                     1000          !nmeasure
                                        1          !ninterval
@@ -22,7 +22,7 @@
  !------------------------------------------------!
                                        4          !norb
                    4         4         1          !La,Lb,Lc
-                                      32          !nelec
+                                      30          !nelec
                                        1          !ncopy
                    T         T         F          !pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          !twista,twistb,twistc in unit of 2pi
@@ -33,7 +33,7 @@
             0.000000  0.000000  0.000000          !rorb- 2
             0.000000  0.000000  0.000000          !rorb- 3
             0.000000  0.000000  0.000000          !rorb- 4
-                   1         1         1          !cuta,cutb,cutc
+                   1         1         0          !cuta,cutb,cutc
                                       12          !nhop
    1   0   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    1   0   0   2   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
@@ -43,10 +43,10 @@
    0   1   0   2   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   1   0   3   3 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   1   0   4   4 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   0   1   1 -0.200000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   0   2   2 -0.200000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   0   3   3 -0.200000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   0   4   4 -0.200000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   0   0   1   1  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   0   0   2   2  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   0   0   3   3  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   0   0   4   4  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
 
  !------------------------------------------------!
  !           boson field block                    !
@@ -55,7 +55,7 @@
 
                                                   !setting block of Uc
                              2         1          !type_field, n_checkerboard
-            0.000000  2.000000  0.000000          !g_field
+            0.000000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        4          !ndim_field
@@ -93,7 +93,7 @@
 
                                                   !setting block of g2
                              2         1          !type_field, n_checkerboard
-            0.250000  0.000000  0.000000          !g_field
+           -0.250000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        4          !ndim_field
@@ -112,7 +112,7 @@
 
                                                   !setting block of g3
                              2         1          !type_field, n_checkerboard
-            0.250000  0.000000  0.000000          !g_field
+           -0.250000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        4          !ndim_field
@@ -131,7 +131,7 @@
 
                                                   !setting block of g4
                              2         1          !type_field, n_checkerboard
-            2.000000  0.000000  0.000000          !g_field
+           -2.000000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        4          !ndim_field
@@ -175,90 +175,23 @@
               0.5000    0.5000    0.0000
               0.5000    0.0000    0.0000
 
-                             1         0          !nr_meas,r_method
+                             2         0          !nr_meas,r_method
                    0         0         0
+                   1         0         0
 
                              0         0          !nrr_meas,rr_method
 
                                       10          !ntau_meas
 
-                             3         8          !n_ph_meas,max_ndim_ph_meas
-                                                  !setting block for PH-   1
-                             T         T          !hartree_ph_meas,fork_ph_meas
-                   4                  sz          !ndim_ph_meas, name_ph_meas
-                   0    0    0    1    1          !da,db,dc,orb,flv
-                   0    0    0    2    1
-                   0    0    0    3    1
-                   0    0    0    4    1
-                                                  !fmat_ph_meas(:,:) for PH-   1
-  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-  0.0  0.0 -1.0 -0.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0  0.0 -1.0 -0.0
-                                                  !setting block for PH-   2
-                             T         T          !hartree_ph_meas,fork_ph_meas
-                   4                  sx          !ndim_ph_meas, name_ph_meas
-                   0    0    0    1    1          !da,db,dc,orb,flv
-                   0    0    0    2    1
-                   0    0    0    3    1
-                   0    0    0    4    1
-                                                  !fmat_ph_meas(:,:) for PH-   2
-  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0
-  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0
-  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0
-                                                  !setting block for PH-   3
-                             T         T          !hartree_ph_meas,fork_ph_meas
-                   8                  jx          !ndim_ph_meas, name_ph_meas
-                   0    0    0    1    1          !da,db,dc,orb,flv
-                   0    0    0    2    1
-                   0    0    0    3    1
-                   0    0    0    4    1
-                   1    0    0    1    1
-                   1    0    0    2    1
-                   1    0    0    3    1
-                   1    0    0    4    1
-                                                  !fmat_ph_meas(:,:) for PH-   3
-  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0
-  0.0 -1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0 -1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0 -1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-  0.0  0.0  0.0  0.0  0.0  0.0  0.0 -1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+                             0         0          !n_ph_meas,max_ndim_ph_meas
 
-                             2         4          !n_pp_meas,max_ndim_pp_meas
-                                                  !setting block for PP-   1
-                             T         T          !fork13_pp_meas,fork14_pp_meas
-                   4                  ps          !ndim_pp_meas, name_pp_meas
-                   0    0    0    1    1          !da,db,dc,orb,flv
-                   0    0    0    2    1
-                   0    0    0    3    1
-                   0    0    0    4    1
-                                                  !fmat_pp_meas(:,:) for PP-   1
-  0.0  0.0  0.0  0.0  0.0  0.0 -0.0 -1.0
-  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0
-  0.0  0.0 -0.0 -1.0  0.0  0.0  0.0  0.0
-  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
-                                                  !setting block for PP-   2
-                             T         T          !fork13_pp_meas,fork14_pp_meas
-                   4                  pt          !ndim_pp_meas, name_pp_meas
-                   0    0    0    1    1          !da,db,dc,orb,flv
-                   0    0    0    2    1
-                   0    0    0    3    1
-                   0    0    0    4    1
-                                                  !fmat_pp_meas(:,:) for PP-   2
-  0.0  0.0  0.0  0.0 -0.0 -0.0 -0.0 -1.0
-  0.0  0.0  0.0  0.0 -0.0 -1.0 -0.0 -0.0
-  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0
-  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
+                             0         0          !n_pp_meas,max_ndim_pp_meas
 
                                        0          !ncross_ph_meas
 
                                        0          !ncross_pp_meas
 
-                                       F          !FAtech
+                                       T          !FAtech
                              F         0          !do_measurement_external, n_meas_external
                                        F          !do_tmpout_external
                                        F          !do_postprocess_external
