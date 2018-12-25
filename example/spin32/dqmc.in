@@ -4,7 +4,7 @@
                                        F          !restart
                                        t          !proj
                                        1          !nflv
-                                4.000000          !beta
+                                2.000000          !beta
                                 0.100000          !dtau
                                        1          !nsp
                                        1          !nbin
@@ -12,8 +12,8 @@
                                     1000          !nmeasure
                                        1          !ninterval
                                      100          !ntmpout
-                                      10          !nscratch
-                                      10          !ngroup
+                                       5          !nscratch
+                                       5          !ngroup
                                    12321          !randomseed
                                 0.000000          !newMetro
 
@@ -22,7 +22,7 @@
  !------------------------------------------------!
                                        4          !norb
                    4         4         1          !La,Lb,Lc
-                                      30          !nelec
+                                      28          !nelec
                                        1          !ncopy
                    T         T         F          !pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          !twista,twistb,twistc in unit of 2pi
@@ -55,7 +55,7 @@
 
                                                   !setting block of Uc
                              2         1          !type_field, n_checkerboard
-            0.000000  0.000000  0.000000          !g_field
+           -0.000000  2.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        4          !ndim_field
