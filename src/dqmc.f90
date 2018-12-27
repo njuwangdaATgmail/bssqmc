@@ -60,6 +60,9 @@ MODULE dqmc
   ! hopping parameters (including onsite energy)
   COMPLEX(8), ALLOCATABLE :: hop(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
 
+  ! hopping parameters for Slater wave function (including onsite energy)
+  COMPLEX(8), ALLOCATABLE :: hop_slater(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
+
   ! inverse of temperature
   REAL(8) beta
 
@@ -302,8 +305,9 @@ CONTAINS
     END DO; END DO; END DO; END DO
 
   END SUBROUTINE set_kmat
-  ! set kinetic Hamiltonian matrix
-  SUBROUTINE set_kmat_trying()
+
+  ! set kinetic Hamiltonian matrix for Slater wave function
+  SUBROUTINE set_kmat_slater()
     IMPLICIT NONE
     REAL(8), PARAMETER :: twopi=acos(-1d0)*2
     INTEGER a,b,c,orb,i,flv
@@ -325,7 +329,7 @@ CONTAINS
           i2=label(a2,b2,c2,orb2)
 
           DO flv=1,nflv
-            kmat(i,i2,flv)=hop(da,db,dc,orb,orb2,flv)
+            kmat(i,i2,flv)=hop_slater(da,db,dc,orb,orb2,flv)
             !kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
           END DO
 
@@ -376,8 +380,8 @@ CONTAINS
           i2=label(a2,b2,c2,orb2)
 
           DO flv=1,nflv
-            kmat(i,i2,flv)=(1+0.01*drand_sym())*hop(da,db,dc,orb,orb2,flv)*boundary
-            kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
+            kmat(i,i2,flv)=hop_slater(da,db,dc,orb,orb2,flv)*boundary
+            !kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
           END DO
 
         END IF
@@ -385,7 +389,7 @@ CONTAINS
       END DO; END DO; END DO; END DO
     END DO; END DO; END DO; END DO
 
-  END SUBROUTINE set_kmat_trying
+  END SUBROUTINE set_kmat_slater
 
   ! set exp(K)=exp(-dtau*H0)
   ! NOTICE: before calling this subroutine, kmat must be generated
