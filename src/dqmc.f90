@@ -61,7 +61,9 @@ MODULE dqmc
   COMPLEX(8), ALLOCATABLE :: hop(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
 
   ! hopping parameters for Slater wave function (including onsite energy)
-  COMPLEX(8), ALLOCATABLE :: hop_slater(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
+  ! which can be optimized to speed up the convergence. The easiest way is to set hop_slater_uniform=hop
+  !COMPLEX(8), ALLOCATABLE :: hop_slater_uniform(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
+  COMPLEX(8), ALLOCATABLE :: hop_slater_disorder(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
 
   ! inverse of temperature
   REAL(8) beta
@@ -314,12 +316,15 @@ CONTAINS
     INTEGER a2,b2,c2,orb2,i2
     INTEGER da,db,dc
     COMPLEX(8) boundary
+    REAL(8) r
 
     IF(.not.allocated(kmat)) ALLOCATE(kmat(La*Lb*Lc*norb,La*Lb*Lc*norb,nflv))
 
     kmat=0d0
 
-    DO a=1,La; DO b=1,Lb; DO c=1,Lc; DO orb=1,norb; i=label(a,b,c,orb)
+    DO a=1,La; DO b=1,Lb; DO c=1,Lc; 
+      r=drand_sym()*0.01d0
+      DO orb=1,norb; i=label(a,b,c,orb)
       DO da=-cuta,cuta; DO db=-cutb,cutb; DO dc=-cutc,cutc; DO orb2=1,norb
 
         a2=a+da; b2=b+db; c2=c+dc
@@ -329,7 +334,7 @@ CONTAINS
           i2=label(a2,b2,c2,orb2)
 
           DO flv=1,nflv
-            kmat(i,i2,flv)=hop_slater(da,db,dc,orb,orb2,flv)
+            kmat(i,i2,flv)=hop(da,db,dc,orb,orb2,flv)+hop_slater_disorder(da,db,dc,orb,orb2,flv)*r
             !kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
           END DO
 
@@ -380,7 +385,7 @@ CONTAINS
           i2=label(a2,b2,c2,orb2)
 
           DO flv=1,nflv
-            kmat(i,i2,flv)=hop_slater(da,db,dc,orb,orb2,flv)*boundary
+            kmat(i,i2,flv)=hop(da,db,dc,orb,orb2,flv)*boundary+hop_slater_disorder(da,db,dc,orb,orb2,flv)*boundary*r
             !kmat(i2,i,flv)=conjg(kmat(i,i2,flv))
           END DO
 

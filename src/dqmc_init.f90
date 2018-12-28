@@ -91,15 +91,13 @@ SUBROUTINE init()
     hop(-da,-db,-dc,orb2,orb,:)=dcmplx(re,-re2)
   END DO
 
-  ALLOCATE(hop_slater(-cuta:cuta,-cutb:cutb,-cutc:cutc,norb,norb,nflv))
-  hop_slater=0d0 !hop
+  ALLOCATE(hop_slater_disorder(-cuta:cuta,-cutb:cutb,-cutc:cutc,norb,norb,nflv))
+  hop_slater_disorder=0d0
   READ(10,*) nhop
   DO i=1,nhop
     READ(10,*) da,db,dc,orb,orb2,re,re2
-    hop_slater(da,db,dc,orb,orb2,:)=dcmplx(re,re2)
-    hop_slater(-da,-db,-dc,orb2,orb,:)=+dcmplx(re,-re2)
-    !hop_slater(da,db,dc,orb,orb2,:)=hop_slater(da,db,dc,orb,orb2,:)+dcmplx(re,re2)
-    !hop_slater(-da,-db,-dc,orb2,orb,:)=hop_slater(-da,-db,-dc,orb2,orb,:)+dcmplx(re,-re2)
+    hop_slater_disorder(da,db,dc,orb,orb2,:)=dcmplx(re,re2)
+    hop_slater_disorder(-da,-db,-dc,orb2,orb,:)=dcmplx(re,-re2)
   END DO
 
   ALLOCATE(kmat(nsite,nsite,nflv))
