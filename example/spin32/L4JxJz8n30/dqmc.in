@@ -22,7 +22,7 @@
  !------------------------------------------------!
                                        4          !norb
                    4         4         1          !La,Lb,Lc
-                                      32          !nelec
+                                      30          !nelec
                                        1          !ncopy
                    T         T         F          !pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          !twista,twistb,twistc in unit of 2pi
