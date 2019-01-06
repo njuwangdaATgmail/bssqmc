@@ -4,16 +4,16 @@
                                        F          !restart
                                        T          !proj
                                        1          !nflv
-                               1.000000          !beta
-                                0.100000          !dtau
+                               12.000000          !beta
+                                0.050000          !dtau
                                        1          !nsp
                                        1          !nbin
-                                    100          !nwarmup
-                                    100          !nmeasure
+                                    500          !nwarmup
+                                    500          !nmeasure
                                        1          !ninterval
-                                     10          !ntmpout
-                                      10          !nscratch
-                                      10          !ngroup
+                                     100          !ntmpout
+                                      40          !nscratch
+                                      40          !ngroup
                                    12321          !randomseed
                                 0.000000          !newMetro
 
@@ -27,7 +27,7 @@
                    T         T         F          !pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          !twista,twistb,twistc in unit of 2pi
             1.000000  0.000000  0.000000          !a0r
-            0.500000  0.666667  0.000000          !b0r
+            0.500000  0.866667  0.000000          !b0r
             0.000000  0.000000  1.000000          !c0r
             0.000000  0.000000  0.000000          !rorb- 1
             0.000000  0.000000  0.000000          !rorb- 2
@@ -62,11 +62,11 @@
  !------------------------------------------------!
  !           boson field block                    !
  !------------------------------------------------!
-         2         6         2         4          !n_g,nfield,max_ndim_field,max_isingmax
+         2         4         2         4          !n_g,nfield,max_ndim_field,max_isingmax
 
                                                   !setting block of Hubbard-SU(4)
                              2         2          !type_field, n_checkerboard
-            6.000000  2.000000  0.000000          !g_field
+            8.000000  2.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        2          !ndim_field
@@ -86,7 +86,7 @@
 
                                                   !setting block of Hund
                              1         2          !type_field, n_checkerboard
-            1.000000  0.000000  0.000000          !g_field
+            0.000000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        2          !ndim_field

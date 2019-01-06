@@ -2,27 +2,27 @@
  #           Monte Carlo control block          
  #------------------------------------------------
                                        F          :restart
-                                       F          :proj
+                                       t          :proj
                                        1          :nflv
-                                4.000000          :beta
+                                12.000000          :beta
                                 0.100000          :dtau
                                        1          :nsp
-                                      10          :nbin
-                                    1000          :nwarmup
-                                    1000          :nmeasure
+                                      1          :nbin
+                                    500          :nwarmup
+                                    500          :nmeasure
                                        1          :ninterval
                                      100          :ntmpout
-                                      10          :nscratch
-                                      10          :ngroup
+                                      50          :nscratch
+                                      50          :ngroup
                                    12321          :randomseed
                                 0.000000          :newMetro
  #------------------------------------------------
  #           fermion lattice block          
  #------------------------------------------------
                                        2          :norb
-                   3         3         1          :La,Lb,Lc
-         9          :nelec
-         2          :ncopy
+                   9         9         1          :La,Lb,Lc
+         81          :nelec
+         4          :ncopy
                    T         T         F          :pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          :twista,twistb,twistc in unit of 2pi
             1.000000  0.000000  0.000000          :a0r
@@ -37,12 +37,18 @@
    0   1   0   2   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
   -1   0   0   1   2 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
    0  -1   0   1   2 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+                                  5 0.01          :nhop_slater,hop_slater_random
+   0   0   0   1   2 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+   1   0   0   2   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   1   0   2   1 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+  -1   0   0   1   2 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
+   0  -1   0   1   2 -1.000000  0.000000          :da,db,dc,orb1,orb2,Re(t),Im(t)
  #------------------------------------------------
  #           boson field block          
  #------------------------------------------------
-         1         2         1         2          :n_g,nfield,max_ndim_field,max_isingmax
-                             1         2          :type_field, n_checkerboard
-            4.000000  1.000000  0.000000          :g_field
+         1         2         1         4          :n_g,nfield,max_ndim_field,max_isingmax
+                             2         2          :type_field, n_checkerboard
+            6.000000  2.000000  0.000000          :g_field
   0.000000  0.000000  0.000000  0.000000          :dphi, dphi_global
                         100000         0          :ninterval_global, global_method
                                        1          :ndim_field
@@ -56,34 +62,32 @@
  #------------------------------------------------
  #           measurement block          
  #------------------------------------------------
-                                       1 0          :nk_meas
+                                       2 1          :nk_meas
                    0         0         0
-                                       2 0         :nr_meas
+                   0.3333  0.0000   0.0000
+                                       1 0         :nr_meas
                    0         0         0
-                   1         0         0
                                        0 0         :nrr_meas
-                                      10          :ntau_meas
-                             3         2          :n_ph_meas,max_ndim_ph_meas
-                             T         F          :hartree_ph_meas,fork_ph_meas
-                   1                  da          :ndim_ph_meas, name_ph_meas
- ! for each basis, da,db,dc,orb,flv are given below
-         0         0         0         1         1
-    1.000000    0.000000          :fmat_ph_meas
-                             T         F          :hartree_ph_meas,fork_ph_meas
-                   1                  db          :ndim_ph_meas, name_ph_meas
- ! for each basis, da,db,dc,orb,flv are given below
-         0         0         0         2         1
-    1.000000    0.000000          :fmat_ph_meas
-                             F         T          :hartree_ph_meas,fork_ph_meas
-                   2                ssaf          :ndim_ph_meas, name_ph_meas
- ! for each basis, da,db,dc,orb,flv are given below
-         0         0         0         1         1
-         0         0         0         2         1
-    0.000000    0.000000    1.000000    0.000000          :fmat_ph_meas
-    1.000000    0.000000    0.000000    0.000000
+                                      0          :ntau_meas
+
+                             2         1          !n_ph_meas,max_ndim_ph_meas
+
+                                                  !setting block for PH-   1
+                             F         T          !hartree_ph_meas,fork_ph_meas
+                   1                  SA          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                                                  !fmat_ph_meas(:,:) for PH-   1
+                      1.0  0.0 
+
+                                                  !setting block for PH-   2
+                             F         T          !hartree_ph_meas,fork_ph_meas
+                   1                  SB          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                                                  !fmat_ph_meas(:,:) for PH-   2
+                      1.0  0.0
                              0         0          :n_pp_meas,max_ndim_pp_meas
                              1                    :ncross_ph_meas
-                          dadb                    :name of the channel
+                          SA_SB                    :name of the channel
                              1         2          :cross_ph_meas
                              0                    :ncross_pp_meas
                                        T          :FAtech
