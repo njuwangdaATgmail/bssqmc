@@ -4,24 +4,24 @@
                                        F          :restart
                                        t          :proj
                                        1          :nflv
-                                12.000000          :beta
-                                0.100000          :dtau
+                                20.000000          :beta
+                                0.0500000          :dtau
                                        1          :nsp
                                       1          :nbin
                                     500          :nwarmup
-                                    500          :nmeasure
+                                    2000          :nmeasure
                                        1          :ninterval
                                      100          :ntmpout
-                                      50          :nscratch
-                                      50          :ngroup
+                                     100          :nscratch
+                                     100          :ngroup
                                    12321          :randomseed
                                 0.000000          :newMetro
  #------------------------------------------------
  #           fermion lattice block          
  #------------------------------------------------
                                        2          :norb
-                   9         9         1          :La,Lb,Lc
-         81          :nelec
+                   3         3         1          :La,Lb,Lc
+        9          :nelec
          4          :ncopy
                    T         T         F          :pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          :twista,twistb,twistc in unit of 2pi
@@ -48,7 +48,7 @@
  #------------------------------------------------
          1         2         1         4          :n_g,nfield,max_ndim_field,max_isingmax
                              2         2          :type_field, n_checkerboard
-            6.000000  2.000000  0.000000          :g_field
+            12.000000  2.000000  0.000000          :g_field
   0.000000  0.000000  0.000000  0.000000          :dphi, dphi_global
                         100000         0          :ninterval_global, global_method
                                        1          :ndim_field
@@ -62,15 +62,17 @@
  #------------------------------------------------
  #           measurement block          
  #------------------------------------------------
-                                       2 1          :nk_meas
+                                       4 1          :nk_meas
                    0         0         0
-                   0.3333  0.0000   0.0000
+                  -0.6667  0.0000   0.0000
+                   0.6667 -0.6667   0.0000
+                   0.0000  0.6667   0.0000
                                        1 0         :nr_meas
                    0         0         0
                                        0 0         :nrr_meas
                                       0          :ntau_meas
 
-                             2         1          !n_ph_meas,max_ndim_ph_meas
+                             5         2          !n_ph_meas,max_ndim_ph_meas
 
                                                   !setting block for PH-   1
                              F         T          !hartree_ph_meas,fork_ph_meas
@@ -85,10 +87,46 @@
                    0    0    0    2    1          !da,db,dc,orb,flv
                                                   !fmat_ph_meas(:,:) for PH-   2
                       1.0  0.0
+
+                                                  !setting block for PH-   3
+                             t         T          !hartree_ph_meas,fork_ph_meas
+                   2                  d1          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                                                  !fmat_ph_meas(:,:) for PH-   2
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   4
+                             t         T          !hartree_ph_meas,fork_ph_meas
+                   2                  d2          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                  -1    0    0    2    1          !da,db,dc,orb,flv
+                                                  !fmat_ph_meas(:,:) for PH-   2
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   5
+                             t         T          !hartree_ph_meas,fork_ph_meas
+                   2                  d3          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0   -1    0    2    1          !da,db,dc,orb,flv
+                                                  !fmat_ph_meas(:,:) for PH-   2
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
                              0         0          :n_pp_meas,max_ndim_pp_meas
-                             1                    :ncross_ph_meas
+
+                             4                    :ncross_ph_meas
                           SA_SB                    :name of the channel
                              1         2          :cross_ph_meas
+                          d1_d2                   :name of the channel
+                             3         4          :cross_ph_meas
+                          d1_d3                    :name of the channel
+                             3         5          :cross_ph_meas
+                          d2_d3                    :name of the channel
+                             4         5          :cross_ph_meas
+
                              0                    :ncross_pp_meas
                                        T          :FAtech
                              F         0          :do_measurement_external, n_meas_external
