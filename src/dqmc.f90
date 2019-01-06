@@ -64,6 +64,7 @@ MODULE dqmc
   ! which can be optimized to speed up the convergence. The easiest way is to set hop_slater_uniform=hop
   !COMPLEX(8), ALLOCATABLE :: hop_slater_uniform(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
   COMPLEX(8), ALLOCATABLE :: hop_slater_disorder(:,:,:,:,:,:) ! (cuta,cutb,cutc,norb,norb,nflv)
+  REAL(8) :: hop_slater_random = 0.01d0  !
 
   ! inverse of temperature
   REAL(8) beta
@@ -323,7 +324,7 @@ CONTAINS
     kmat=0d0
 
     DO a=1,La; DO b=1,Lb; DO c=1,Lc; 
-      r=drand_sym()*0.01d0
+      r=drand_sym()*hop_slater_random
       DO orb=1,norb; i=label(a,b,c,orb)
       DO da=-cuta,cuta; DO db=-cutb,cutb; DO dc=-cutc,cutc; DO orb2=1,norb
 

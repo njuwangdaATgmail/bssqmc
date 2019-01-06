@@ -228,7 +228,23 @@ PROGRAM main
   PRINT*,'>>nhop: number of nonzero hoppings (including onsite energies)'
   i1=0
   CALL saferead(i1)
+  WRITE(10,*)
   WRITE(10,'(1i40,10x,a)') i1,'!nhop'
+
+  DO i=1,i1
+    PRINT*,'>>da,db,dc,orb1,orb2,Re(t),Im(t):'
+    ivec(1:5)=(/0,0,0,1,1/)
+    rvec(1:2)=(/-1d0,0d0/)
+    CALL saferead(5,ivec,2,rvec)
+    WRITE(10,'(5i4,2f10.6,10x,a)') ivec(1:5),rvec(1:2),'!da,db,dc,orb1,orb2,Re(t),Im(t)'
+  END DO
+  
+  PRINT*,'>>nhop and hop_slater_random for slater. This is only useful for T=0 code.'
+  ivec(1)=0; rvec(1)=0.01d0;
+  CALL saferead(1,ivec,1,rvec)
+  i1=ivec(1); r1=rvec(1)
+  wRITE(10,*)
+  WRITE(10,'(1i20,1f20.6,10x,a)') i1,r1,'!nhop_slater_random, hop_slater_random'
 
   DO i=1,i1
     PRINT*,'>>da,db,dc,orb1,orb2,Re(t),Im(t):'
@@ -480,6 +496,7 @@ PROGRAM main
 
   DO i=1,n2
     
+    WRITE(10,*)
     WRITE(10,'(50x,a,1i4)') '!setting block for PH-',i
 
     PRINT*,'>>hartree_ph_meas, fork_ph_meas for PH-', i
@@ -578,6 +595,7 @@ PROGRAM main
 
   DO i=1,n2
     
+    WRITE(10,*)
     WRITE(10,'(50x,a,1i4)') '!setting block for PP-',i
 
     PRINT*,'>>fork13_pp_meas, fork14_pp_meas for PP-', i

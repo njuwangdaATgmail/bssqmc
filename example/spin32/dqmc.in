@@ -4,7 +4,7 @@
                                        F          !restart
                                        t          !proj
                                        1          !nflv
-                               16.000000          !beta
+                                2.000000          !beta
                                 0.100000          !dtau
                                        1          !nsp
                                       1          !nbin
@@ -48,7 +48,7 @@
    0   0   0   3   3  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   0   0   4   4  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
 
-                                       4          !nhop
+                   4            0.010000          !nhop_slater, hop_slater_random
    0   0   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   0   0   2   2  1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   0   0   3   3  1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)

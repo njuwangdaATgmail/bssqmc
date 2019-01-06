@@ -93,7 +93,7 @@ SUBROUTINE init()
 
   ALLOCATE(hop_slater_disorder(-cuta:cuta,-cutb:cutb,-cutc:cutc,norb,norb,nflv))
   hop_slater_disorder=0d0
-  READ(10,*) nhop
+  READ(10,*) nhop, hop_slater_random
   DO i=1,nhop
     READ(10,*) da,db,dc,orb,orb2,re,re2
     hop_slater_disorder(da,db,dc,orb,orb2,:)=dcmplx(re,re2)

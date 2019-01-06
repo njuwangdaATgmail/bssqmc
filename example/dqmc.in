@@ -1,7 +1,7 @@
  !------------------------------------------------!
  !           Monte Carlo control block            !
  !------------------------------------------------!
-                                      f          !restart
+                                       F          !restart
                                        F          !proj
                                        1          !nflv
                                 1.000000          !beta
@@ -32,6 +32,7 @@
             0.000000  0.000000  0.000000          !rorb- 1
                    1         1         1          !cuta,cutb,cutc
                                        0          !nhop
+                   0            0.010000          !nhop_slater_random, hop_slater_random
 
  !------------------------------------------------!
  !           boson field block                    !
