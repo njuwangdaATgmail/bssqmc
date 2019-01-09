@@ -4,7 +4,7 @@
                                        F          :restart
                                        t          :proj
                                        1          :nflv
-                                40.000000          :beta
+                                12.000000          :beta
                                 0.0500000          :dtau
                                        1          :nsp
                                       1          :nbin
@@ -20,8 +20,8 @@
  #           fermion lattice block          
  #------------------------------------------------
                                        2          :norb
-                   9         9         1          :La,Lb,Lc
-        81          :nelec
+                   3         3         1          :La,Lb,Lc
+         9          :nelec
          4          :ncopy
                    T         T         F          :pbca,pbcb,pbcc
             0.000000  0.000000  0.000000          :twista,twistb,twistc in unit of 2pi
@@ -44,7 +44,7 @@
  #------------------------------------------------
          1         2         1         4          :n_g,nfield,max_ndim_field,max_isingmax
                              2         2          :type_field, n_checkerboard
-            12.000000  2.000000  0.000000          :g_field
+           12.000000  2.000000  0.000000          :g_field
   0.000000  0.000000  0.000000  0.000000          :dphi, dphi_global
                         100000         0          :ninterval_global, global_method
                                        1          :ndim_field
@@ -66,7 +66,8 @@
                                        1 0         :nr_meas
                    0         0         0
                                        0 0         :nrr_meas
-                                      0          :ntau_meas
+                                      
+                                      10           :ntau_meas
 
                              8         2          !n_ph_meas,max_ndim_ph_meas
 

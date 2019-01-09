@@ -2,9 +2,9 @@
  !           Monte Carlo control block            !
  !------------------------------------------------!
                                        F          !restart
-                                       T          !proj
+                                       t          !proj
                                        1          !nflv
-                               8.000000          !beta
+                               12.000000          !beta
                                 0.05000          !dtau
                                        1          !nsp
                                        1          !nbin
@@ -58,7 +58,7 @@
 
                                                   !setting block of V
                              2         2          !type_field, n_checkerboard
-                   6  2.000000  0.000000          !g_field
+                  12  2.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        2          !ndim_field
@@ -98,7 +98,7 @@
 
                                                   !setting block of U-V
                              1         4          !type_field, n_checkerboard
-                 0.5  1.000000  0.000000          !g_field
+                 0.0  1.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        1          !ndim_field
@@ -137,7 +137,7 @@
 
                                        0          !ntau_meas
 
-                            12         2          !n_ph_meas,max_ndim_ph_meas
+                            16         2          !n_ph_meas,max_ndim_ph_meas
 
                                                   !setting block for PH-   1
                              F         T          !hartree_ph_meas,fork_ph_meas
@@ -169,63 +169,115 @@
 
                                                   !setting block for PH-   5
                              T         F          !hartree_ph_meas,fork_ph_meas
-                   1                dA1h          !ndim_ph_meas, name_ph_meas
+                   2                d11h          !ndim_ph_meas, name_ph_meas
                    0    0    0    1    1          !da,db,dc,orb,flv
+                   0    0    0    3    1
                                                   !fmat_ph_meas(:,:) for PH-   5
-                                1.0  0.0
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
 
                                                   !setting block for PH-   6
                              T         F          !hartree_ph_meas,fork_ph_meas
-                   1                dA2h          !ndim_ph_meas, name_ph_meas
-                   0    0    0    2    1          !da,db,dc,orb,flv
+                   2                d12h          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                  -1    0    0    3    1
                                                   !fmat_ph_meas(:,:) for PH-   6
-                                1.0  0.0
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
 
                                                   !setting block for PH-   7
                              T         F          !hartree_ph_meas,fork_ph_meas
-                   1                dB1h          !ndim_ph_meas, name_ph_meas
-                   0    0    0    3    1          !da,db,dc,orb,flv
+                   2                d13h          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0   -1    0    3    1
                                                   !fmat_ph_meas(:,:) for PH-   7
-                                1.0  0.0
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
 
                                                   !setting block for PH-   8
                              T         F          !hartree_ph_meas,fork_ph_meas
-                   1                dB2h          !ndim_ph_meas, name_ph_meas
-                   0    0    0    4    1          !da,db,dc,orb,flv
-                                                  !fmat_ph_meas(:,:) for PH-   8
-                                1.0  0.0
-
-                                                   !setting block for PH-   9
-                             F         T          !hartree_ph_meas,fork_ph_meas
-                   1                dA1f          !ndim_ph_meas, name_ph_meas
-                   0    0    0    1    1          !da,db,dc,orb,flv
-                                                  !fmat_ph_meas(:,:) for PH-   9
-                                1.0  0.0
-
-                                                  !setting block for PH-  10
-                             F         T          !hartree_ph_meas,fork_ph_meas
-                   1                dA2f          !ndim_ph_meas, name_ph_meas
+                   2                d21h          !ndim_ph_meas, name_ph_meas
                    0    0    0    2    1          !da,db,dc,orb,flv
-                                                  !fmat_ph_meas(:,:) for PH-  10
-                                1.0  0.0
+                   0    0    0    4    1
+                                                  !fmat_ph_meas(:,:) for PH-   8
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
 
-                                                  !setting block for PH-  11
+                                                  !setting block for PH-   9
+                             T         F          !hartree_ph_meas,fork_ph_meas
+                   2                d22h          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                  -1    0    0    4    1
+                                                  !fmat_ph_meas(:,:) for PH-   9
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   10
+                             T         F          !hartree_ph_meas,fork_ph_meas
+                   2                d23h          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                   0   -1    0    4    1
+                                                  !fmat_ph_meas(:,:) for PH-   10
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   11
                              F         T          !hartree_ph_meas,fork_ph_meas
-                   1                dB1f          !ndim_ph_meas, name_ph_meas
-                   0    0    0    3    1          !da,db,dc,orb,flv
-                                                  !fmat_ph_meas(:,:) for PH-  11
-                                1.0  0.0
+                   2                d11f          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0    0    0    3    1
+                                                  !fmat_ph_meas(:,:) for PH-   11
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
 
                                                   !setting block for PH-   12
                              F         T          !hartree_ph_meas,fork_ph_meas
-                   1                dB2f          !ndim_ph_meas, name_ph_meas
-                   0    0    0    4    1          !da,db,dc,orb,flv
-                                                  !fmat_ph_meas(:,:) for PH-  12
-                                1.0  0.0
+                   2                d12f          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                  -1    0    0    3    1
+                                                  !fmat_ph_meas(:,:) for PH-   12
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   13
+                             F         T          !hartree_ph_meas,fork_ph_meas
+                   2                d13f          !ndim_ph_meas, name_ph_meas
+                   0    0    0    1    1          !da,db,dc,orb,flv
+                   0   -1    0    3    1
+                                                  !fmat_ph_meas(:,:) for PH-   13
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   14
+                             F         T          !hartree_ph_meas,fork_ph_meas
+                   2                d21f          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                   0    0    0    4    1
+                                                  !fmat_ph_meas(:,:) for PH-   14
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   15
+                             F         T          !hartree_ph_meas,fork_ph_meas
+                   2                d22f          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                  -1    0    0    4    1
+                                                  !fmat_ph_meas(:,:) for PH-   15
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
+
+                                                  !setting block for PH-   16
+                             F         T          !hartree_ph_meas,fork_ph_meas
+                   2                d23f          !ndim_ph_meas, name_ph_meas
+                   0    0    0    2    1          !da,db,dc,orb,flv
+                   0   -1    0    4    1
+                                                  !fmat_ph_meas(:,:) for PH-   16
+                      0.0  0.0  1.0  0.0
+                      1.0  0.0  0.0  0.0
 
                              0         0          !n_pp_meas,max_ndim_pp_meas
 
-                                      18          !ncross_ph_meas
+                                      16          !ncross_ph_meas
                                        
                                  SA1_SA2          !name of the channel   1
                              1         2          !cross_ph_meas
@@ -245,41 +297,35 @@
                                  SA2_SB1          !name of the channel   6
                              2         3          !cross_ph_meas
 
-                               dA1h_dA2h          !name of the channel   7
+                               d11h_d12h          !name of the channel   7
                              5         6          !cross_ph_meas
 
-                               dB1h_dB2h          !name of the channel   8
-                             7         8          !cross_ph_meas
-
-                               dA1h_dB1h          !name of the channel   9
+                               d11h_d13h          !name of the channel   8
                              5         7          !cross_ph_meas
 
-                               dA2h_dB2h          !name of the channel   10
-                             6         8          !cross_ph_meas
-
-                               dA1h_dB2h          !name of the channel   11
+                               d11h_d21h          !name of the channel   9
                              5         8          !cross_ph_meas
 
-                               dA2h_dB1h          !name of the channel   12
-                             6         7          !cross_ph_meas
+                               d11h_d22h          !name of the channel   10
+                             5         9          !cross_ph_meas
 
-                               dA1f_dA2f          !name of the channel   13
-                             9        10          !cross_ph_meas
+                               d11h_d23h          !name of the channel   11
+                             5        10          !cross_ph_meas
 
-                               dB1f_dB2f          !name of the channel   14
+                               d11f_d12f          !name of the channel   12
                             11        12          !cross_ph_meas
 
-                               dA1f_dB1f          !name of the channel   15
-                             9        11          !cross_ph_meas
+                               d11f_d13f          !name of the channel   13
+                            11        13          !cross_ph_meas
 
-                               dA2f_dB2f          !name of the channel   16
-                            10        12          !cross_ph_meas
+                               d11f_d21f          !name of the channel   14
+                            11        14          !cross_ph_meas
 
-                               dA1f_dB2f          !name of the channel   17
-                             9        12          !cross_ph_meas
+                               d11f_d22f          !name of the channel   15
+                            11        15          !cross_ph_meas
 
-                               dA2f_dB1f          !name of the channel   18
-                            10        11          !cross_ph_meas
+                               d11f_d23f          !name of the channel   16
+                            11        16          !cross_ph_meas
 
                                        0          !ncross_pp_meas
 
