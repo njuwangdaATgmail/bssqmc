@@ -3,7 +3,8 @@
 F90 = mpif90 #ifort
 FCOPTS = -O2 -cpp -DMPI -fexternal-blas #-g -Wall #-Wextra -fbacktrace -fbounds-check -ffpe-trap=zero,overflow,underflow #-CB -CU -g -trace -W1 
 LDOPTS = -O2
-LIBS = -lopenblas #-mkl=sequential -limf #-static
+LIBS = -I /opt/OpenBLAS/include/ -L/opt/OpenBLAS/lib  -lopenblas
+#LIBS = -lopenblas #-mkl=sequential -limf #-static
 #==========================================================
 # define all obj files
 OBJS = mod_matrixlib.o test_env.o 
