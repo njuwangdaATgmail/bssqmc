@@ -1,4 +1,4 @@
-program test_env
+program test_ma
 ! a test of the environment: BLAS + LAPACK + MPI
 #ifdef MPI
   use mpi
@@ -18,6 +18,7 @@ program test_env
   call print_m(n,n,a)
   data c /4,6,5,7,8,9,1,0,2,3,4,5,7,8,9,1/
   data d /4,6,5,7,8,9,1,0,2,3,4,5,7,8,9,1/
+
 
   write(*,*)"trace:"
   write(*,*)trace(n,a)
@@ -40,8 +41,15 @@ program test_env
   call print_m(n,n,d)
   call print_m(n,n,r)
   call print_m(n,n,matmul(d,r))
+  call copymatriv(n,n,matmul(d,r),d)
+  call print_m(n,n,d)
+  call lq(n,n,d,r)
+  call print_m(n,n,d)
+  call print_m(n,n,r)
+  call print_m(n,n,matmul(r,d))
   
- 
+
+  write(*,*)"cess"
 
 
 
@@ -57,11 +65,26 @@ program test_env
 
 
    end
+   subroutine copymatriv(n,m,a,b)
+           implicit none
+           integer :: n
+           integer :: m
+           real(8) :: a(n,m)
+           real(8) :: b(n,m)
+           integer :: i,j
+           do i=1,n
+              do j=1,m
+                  b(i,j)=a(i,j)
+                  end do
+            end do
+
+            end 
    subroutine creat_m(n,m,a)
           implicit none
           integer :: n
           integer :: m
           real(8) a(n,m)
+         
           integer :: i,j
           do i=1,n
              do j=1,m
