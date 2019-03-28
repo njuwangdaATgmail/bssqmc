@@ -14,6 +14,8 @@ test_env.x: $(OBJS)
 #==========================================================
 clean:
 	rm *.o *.mod
+veryclean:
+	rm *.x *.o *.mod
 #==========================================================
 # generate every obj and module files
 mod_matrixlib.o: ../src/mod_matrixlib.f90
