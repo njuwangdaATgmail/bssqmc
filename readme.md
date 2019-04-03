@@ -24,3 +24,8 @@ I am designing a BSS auxiliary field DQMC program.
 + a general multi-orbital model with/without spin orbit couplings
 + other boson fields should be able to be easily added, *e.g.* spin/charge/nematic-fluctuations, gauge fields. 
 
+### 他山之石
++ ALF
++ QUEST
++ hubbard-dqmc
++ QMCPACK
