@@ -42,10 +42,10 @@ based on which complex HS decoupling can be performed. Spin is still a good quan
 + The density-density interactions can be decoupled in density channel directly. 
 
 $$
--\frac{V}{2}\sum_{a<b} \left(n_a-n_b\right)^2-\frac{U+V}{2}\sum_a\left(n_{a\uparrow}-n_{a\downarrow}\right)^2+\frac{J}{2}\sum_{a<b}\left(\sum_{\sigma} a^\dagger_\sigma b_\sigma+h.c.\right)^2
+-\frac{V}{2}\sum_{a&ltb} \left(n_a-n_b\right)^2-\frac{U+V}{2}\sum_a\left(n_{a\uparrow}-n_{a\downarrow}\right)^2+\frac{J}{2}\sum_{a&ltb}\left(\sum_{\sigma} a^\dagger_\sigma b_\sigma+h.c.\right)^2
 $$
 
 + All UVJ-terms can be decoupled using complex HS fields, sign problem is gone (on a bipartite lattice with PH symmetry).
   $$
-  \frac{V}{2} \left(\sum_{a\sigma} n_{a\sigma} -N\right)^2+\frac{U-V}{2}\sum_a\left(\sum_\sigma n_{a\sigma}-1\right)^2+\frac{J}{2}\sum_{a<b}\left(\sum_{\sigma} a^\dagger_\sigma b_\sigma+h.c.\right)^2.
+  \frac{V}{2} \left(\sum_{a\sigma} n_{a\sigma} -N\right)^2+\frac{U-V}{2}\sum_a\left(\sum_\sigma n_{a\sigma}-1\right)^2+\frac{J}{2}\sum_{a&ltb}\left(\sum_{\sigma} a^\dagger_\sigma b_\sigma+h.c.\right)^2.
   $$
