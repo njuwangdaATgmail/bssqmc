@@ -21,7 +21,7 @@
  !           fermion lattice block                !
  !------------------------------------------------!
                                        2          !norb
-                   4         4         2          !La,Lb,Lc
+                   4         4         1          !La,Lb,Lc
                             32        32          !nelec
                              1         1          !ncopy
                    T         T         F          !pbca,pbcb,pbcc
@@ -33,11 +33,12 @@
             0.000000  0.000000  1.000000          !rorb- 2
                    1         1         1          !cuta,cutb,cutc
 
-                                       3          !nhop
-   0   0   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   0   2   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   1   1   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-
+                                       5          !nhop
+   0   0   0   1   1  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   0   0   2   2  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   0   0   1   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   1   0   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
+   0   1   0   2   2 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
                    0            0.010000          !nhop_slater_random, hop_slater_random
 
  !------------------------------------------------!
@@ -46,8 +47,8 @@
          2         1         1         2          !n_g,nfield,max_ndim_field,max_isingmax
 
                                                   !setting block of u_1
-                             1         2          !type_field, n_checkerboard
-            -10.000000  0.000000  0.000000        !g_field
+                             1         1          !type_field, n_checkerboard
+          -10.000000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        1          !ndim_field
@@ -58,14 +59,10 @@
                                                   !for checkboard   1
          0         0         0         1          !da,db,dc,orb for basis   1
                                        1          !n_cond
-              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
-                                                  !for checkboard   2
-         0         0         0         2          !da,db,dc,orb for basis   1
-                                       1          !n_cond
-              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
+              1    0    1    0    1    0          !ma,moda,mb,modb,mc,mod
                                                   !setting block of u_2
                              1         2          !type_field, n_checkerboard
-            -10.000000  0.000000  0.000000        !g_field
+          -10.000000  0.000000  0.000000          !g_field
   0.000000  0.000000  0.000000  0.000000          !dphi, dphi_global
                         100000         0          !ninterval_global, global_method
                                        1          !ndim_field
@@ -74,14 +71,9 @@
                                                   !fmat(:,:) for flv=   2
                                -1.0  0.0
                                                   !for checkboard   1
-         0         0         0         1          !da,db,dc,orb for basis   1
+         0         0         1         1          !da,db,dc,orb for basis   1
                                        1          !n_cond
               1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
-                                                  !for checkboard   2
-         0         0         0         2          !da,db,dc,orb for basis   1
-                                       1          !n_cond
-              1    0    1    0    1    0          !ma,moda,mb,modb,mc,modc
-
  !------------------------------------------------!
  !           measurement block                    !
  !------------------------------------------------!
