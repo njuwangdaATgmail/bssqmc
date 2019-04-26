@@ -32,11 +32,11 @@
             0.000000  0.000000  0.000000          !rorb- 1
                    1         1         1          !cuta,cutb,cutc
 
-                                       3          !nhop
+                                       4          !nhop
    1   0   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   1   0   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
    0   0   1   1   1 -1.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)
-   0   0   1   1   1  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)   
+   0   0   0   1   1  0.000000  0.000000          !da,db,dc,orb1,orb2,Re(t),Im(t)   
 
                    0            0.010000          !nhop_slater_random, hop_slater_random
 
